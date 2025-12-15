@@ -1,0 +1,17 @@
+C:\Users\Pc\Desktop\MyArchive\code\ricFinance\backend\HashGenerator\bin\Debug\net9.0\HashGenerator.exe
+C:\Users\Pc\Desktop\MyArchive\code\ricFinance\backend\HashGenerator\bin\Debug\net9.0\HashGenerator.deps.json
+C:\Users\Pc\Desktop\MyArchive\code\ricFinance\backend\HashGenerator\bin\Debug\net9.0\HashGenerator.runtimeconfig.json
+C:\Users\Pc\Desktop\MyArchive\code\ricFinance\backend\HashGenerator\bin\Debug\net9.0\HashGenerator.dll
+C:\Users\Pc\Desktop\MyArchive\code\ricFinance\backend\HashGenerator\bin\Debug\net9.0\HashGenerator.pdb
+C:\Users\Pc\Desktop\MyArchive\code\ricFinance\backend\HashGenerator\bin\Debug\net9.0\BCrypt.Net-Next.dll
+C:\Users\Pc\Desktop\MyArchive\code\ricFinance\backend\HashGenerator\obj\Debug\net9.0\HashGenerator.csproj.AssemblyReference.cache
+C:\Users\Pc\Desktop\MyArchive\code\ricFinance\backend\HashGenerator\obj\Debug\net9.0\HashGenerator.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Pc\Desktop\MyArchive\code\ricFinance\backend\HashGenerator\obj\Debug\net9.0\HashGenerator.AssemblyInfoInputs.cache
+C:\Users\Pc\Desktop\MyArchive\code\ricFinance\backend\HashGenerator\obj\Debug\net9.0\HashGenerator.AssemblyInfo.cs
+C:\Users\Pc\Desktop\MyArchive\code\ricFinance\backend\HashGenerator\obj\Debug\net9.0\HashGenerator.csproj.CoreCompileInputs.cache
+C:\Users\Pc\Desktop\MyArchive\code\ricFinance\backend\HashGenerator\obj\Debug\net9.0\HashGene.ADC516C2.Up2Date
+C:\Users\Pc\Desktop\MyArchive\code\ricFinance\backend\HashGenerator\obj\Debug\net9.0\HashGenerator.dll
+C:\Users\Pc\Desktop\MyArchive\code\ricFinance\backend\HashGenerator\obj\Debug\net9.0\refint\HashGenerator.dll
+C:\Users\Pc\Desktop\MyArchive\code\ricFinance\backend\HashGenerator\obj\Debug\net9.0\HashGenerator.pdb
+C:\Users\Pc\Desktop\MyArchive\code\ricFinance\backend\HashGenerator\obj\Debug\net9.0\HashGenerator.genruntimeconfig.cache
+C:\Users\Pc\Desktop\MyArchive\code\ricFinance\backend\HashGenerator\obj\Debug\net9.0\ref\HashGenerator.dll
