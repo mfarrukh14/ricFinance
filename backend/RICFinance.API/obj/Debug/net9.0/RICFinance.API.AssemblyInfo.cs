@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RICFinance.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e8d5c5273938d4c56b2ccc0f1f26e700bc187dee")]
 [assembly: System.Reflection.AssemblyProductAttribute("RICFinance.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RICFinance.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

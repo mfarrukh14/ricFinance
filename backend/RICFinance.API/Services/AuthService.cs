@@ -12,6 +12,7 @@ namespace RICFinance.API.Services;
 public interface IAuthService
 {
     Task<LoginResponseDto?> LoginAsync(LoginDto dto);
+    Task<LoginResponseDto?> CrossAuthLoginAsync(CrossAuthDto dto);
     Task<UserDto?> RegisterAsync(RegisterDto dto);
     Task<bool> ChangePasswordAsync(int userId, ChangePasswordDto dto);
     Task<UserDto?> GetUserByIdAsync(int userId);
@@ -33,10 +34,13 @@ public class AuthService : IAuthService
 
     public async Task<LoginResponseDto?> LoginAsync(LoginDto dto)
     {
-        var user = await _context.Users
-            .FirstOrDefaultAsync(u => u.Username == dto.Username && u.IsActive);
+        var username = (dto.Username ?? string.Empty).Trim().ToLower();
+        var password = dto.Password ?? string.Empty;
 
-        if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.IsActive && u.Username.ToLower() == username);
+
+        if (user == null || user.PasswordHash != password)
             return null;
 
         user.LastLogin = DateTime.UtcNow;
@@ -53,6 +57,74 @@ public class AuthService : IAuthService
         };
     }
 
+    // Cross-authentication from eProcurement system
+    public async Task<LoginResponseDto?> CrossAuthLoginAsync(CrossAuthDto dto)
+    {
+        var username = (dto.Username ?? string.Empty).Trim().ToLower();
+        var password = dto.Password ?? string.Empty;
+
+        // First, try to find existing user
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.Username.ToLower() == username);
+
+        if (user != null)
+        {
+            // User exists - verify password matches
+            if (user.PasswordHash != password)
+            {
+                // Update password to match eProcurement
+                user.PasswordHash = password;
+                await _context.SaveChangesAsync();
+            }
+
+            if (!user.IsActive)
+            {
+                user.IsActive = true;
+                await _context.SaveChangesAsync();
+            }
+
+            user.LastLogin = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            var token = GenerateJwtToken(user);
+            var expiration = DateTime.UtcNow.AddHours(8);
+
+            return new LoginResponseDto
+            {
+                Token = token,
+                ExpiresAt = expiration,
+                User = MapToDto(user)
+            };
+        }
+
+        // User doesn't exist - create new user from eProcurement credentials
+        var newUser = new User
+        {
+            FullName = dto.FullName ?? username,
+            Username = username,
+            Email = $"{username}@ric.finance",
+            PasswordHash = password,
+            Role = "User",
+            Department = dto.Department ?? "eProcurement",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            LastLogin = DateTime.UtcNow
+        };
+
+        _context.Users.Add(newUser);
+        await _context.SaveChangesAsync();
+
+        var newToken = GenerateJwtToken(newUser);
+        var newExpiration = DateTime.UtcNow.AddHours(8);
+
+        return new LoginResponseDto
+        {
+            Token = newToken,
+            ExpiresAt = newExpiration,
+            User = MapToDto(newUser)
+        };
+    }
+
     public async Task<UserDto?> RegisterAsync(RegisterDto dto)
     {
         if (await _context.Users.AnyAsync(u => u.Username == dto.Username))
@@ -66,7 +138,7 @@ public class AuthService : IAuthService
             FullName = dto.FullName,
             Username = dto.Username,
             Email = dto.Email,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+            PasswordHash = dto.Password,
             Role = dto.Role,
             Department = dto.Department,
             IsActive = true,
@@ -85,10 +157,10 @@ public class AuthService : IAuthService
         if (user == null)
             return false;
 
-        if (!BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.PasswordHash))
+        if (user.PasswordHash != dto.CurrentPassword)
             return false;
 
-        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+        user.PasswordHash = dto.NewPassword;
         await _context.SaveChangesAsync();
 
         return true;

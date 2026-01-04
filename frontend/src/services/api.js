@@ -5,6 +5,48 @@ class ApiService {
     this.baseUrl = API_URL;
   }
 
+  async parseErrorResponse(response) {
+    let body;
+    try {
+      body = await response.clone().json();
+    } catch {
+      try {
+        body = await response.clone().text();
+      } catch {
+        body = null;
+      }
+    }
+
+    if (body && typeof body === 'object') {
+      // Common shapes: { message }, ProblemDetails { title, detail, errors }, { error }
+      const message = body.message || body.error || body.detail || body.title;
+
+      if (body.errors && typeof body.errors === 'object') {
+        const parts = [];
+        for (const [field, messages] of Object.entries(body.errors)) {
+          if (Array.isArray(messages)) {
+            for (const msg of messages) parts.push(field ? `${field}: ${msg}` : msg);
+          } else if (typeof messages === 'string') {
+            parts.push(field ? `${field}: ${messages}` : messages);
+          }
+        }
+        if (parts.length > 0) return parts.join('\n');
+      }
+
+      if (message) return String(message);
+    }
+
+    if (typeof body === 'string' && body.trim().length > 0) {
+      return body;
+    }
+
+    // Friendly fallback by status
+    if (response.status === 403) return "You don't have permission to perform this action.";
+    if (response.status === 404) return 'Not found.';
+    if (response.status >= 500) return 'Server error. Please try again.';
+    return 'An error occurred.';
+  }
+
   getToken() {
     return localStorage.getItem('token');
   }
@@ -49,8 +91,8 @@ class ApiService {
     }
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'An error occurred' }));
-      throw new Error(error.message || 'An error occurred');
+      const message = await this.parseErrorResponse(response);
+      throw new Error(message);
     }
 
     if (response.status === 204) {
@@ -58,6 +100,41 @@ class ApiService {
     }
 
     return response.json();
+  }
+
+  async download(endpoint) {
+    const token = this.getToken();
+    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      method: 'GET',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    if (!response.ok) {
+      let message = `Request failed with status ${response.status}`;
+      try {
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const data = await response.json();
+          message = data?.message || data?.title || data?.detail || message;
+        } else {
+          const text = await response.text();
+          if (text) message = text;
+        }
+      } catch {
+        // ignore parsing errors
+      }
+      throw new Error(message);
+    }
+
+    const blob = await response.blob();
+
+    const disposition = response.headers.get('content-disposition') || '';
+    const match = disposition.match(/filename\*=UTF-8''([^;]+)|filename="?([^";]+)"?/i);
+    const fileName = decodeURIComponent(match?.[1] || match?.[2] || '');
+
+    return { blob, fileName };
   }
 
   // Auth endpoints
@@ -131,6 +208,30 @@ class ApiService {
     });
   }
 
+  async getObjectCodeLevels() {
+    return this.request('/budget/object-code-levels');
+  }
+
+  async createObjectCodeLevel(data) {
+    return this.request('/budget/object-code-levels', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateObjectCodeLevel(id, data) {
+    return this.request(`/budget/object-code-levels/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteObjectCodeLevel(id) {
+    return this.request(`/budget/object-code-levels/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   async getFiscalYears() {
     return this.request('/budget/fiscal-years');
   }
@@ -181,9 +282,125 @@ class ApiService {
     });
   }
 
+  async updateReleases(budgetEntryId, data) {
+    return this.request(`/budget/entries/${budgetEntryId}/releases`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getExpenseHistory(budgetEntryId) {
+    return this.request(`/budget/entries/${budgetEntryId}/expenses`);
+  }
+
+  async addExpense(budgetEntryId, data) {
+    return this.request(`/budget/entries/${budgetEntryId}/expenses`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   async getDashboardSummary(fiscalYearId = null) {
     const query = fiscalYearId ? `?fiscalYearId=${fiscalYearId}` : '';
     return this.request(`/budget/dashboard${query}`);
+  }
+
+  async downloadConsolidatedBudgetReport(fiscalYearId) {
+    const query = fiscalYearId ? `?fiscalYearId=${fiscalYearId}` : '';
+    return this.download(`/reports/consolidated-budget${query}`);
+  }
+
+  // ==================== Contingent Bills ====================
+  
+  async getContingentBills() {
+    return this.request('/contingentbill/contingent-bills');
+  }
+
+  async getContingentBill(id) {
+    return this.request(`/contingentbill/contingent-bills/${id}`);
+  }
+
+  async createContingentBill(data) {
+    return this.request('/contingentbill/contingent-bills', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateContingentBill(id, data) {
+    return this.request(`/contingentbill/contingent-bills/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async approveContingentBill(id, approvalType) {
+    return this.request(`/contingentbill/contingent-bills/${id}/approve`, {
+      method: 'POST',
+      body: JSON.stringify({ approvalType }),
+    });
+  }
+
+  async rejectContingentBill(id, reason, amountLessDrawn = 0) {
+    return this.request(`/contingentbill/contingent-bills/${id}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ reason, amountLessDrawn }),
+    });
+  }
+
+  // ==================== Schedule of Payments ====================
+
+  async getScheduleOfPayments() {
+    return this.request('/contingentbill/schedule-of-payments');
+  }
+
+  async getScheduleOfPayment(id) {
+    return this.request(`/contingentbill/schedule-of-payments/${id}`);
+  }
+
+  async updateScheduleOfPayment(id, data) {
+    return this.request(`/contingentbill/schedule-of-payments/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async approveScheduleOfPayment(id, approvalType) {
+    return this.request(`/contingentbill/schedule-of-payments/${id}/approve`, {
+      method: 'POST',
+      body: JSON.stringify({ approvalType }),
+    });
+  }
+
+  // ==================== Asaan Cheques ====================
+
+  async getAsaanCheques() {
+    return this.request('/contingentbill/asaan-cheques');
+  }
+
+  async getAsaanCheque(id) {
+    return this.request(`/contingentbill/asaan-cheques/${id}`);
+  }
+
+  async updateAsaanCheque(id, data) {
+    return this.request(`/contingentbill/asaan-cheques/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async approveAsaanCheque(id, approvalType) {
+    return this.request(`/contingentbill/asaan-cheques/${id}/approve`, {
+      method: 'POST',
+      body: JSON.stringify({ approvalType }),
+    });
+  }
+
+  async forwardAsaanCheque(id, bankDetails, referenceNumber) {
+    return this.request(`/contingentbill/asaan-cheques/${id}/forward`, {
+      method: 'POST',
+      body: JSON.stringify({ bankDetails, referenceNumber }),
+    });
   }
 
   logout() {

@@ -1,0 +1,133 @@
+Object Code	Head of Account
+ A01 	 Total Employees Related Expenses 
+ A011 	 Total Pay 
+ A011-1 	 Total Pay of Officers 
+ A01101 	 Total Basic Pay of Officers 
+ A01105 	 Qualification Pay 
+ A01150 	 Others 
+002	 Pay of Officers 
+ A011-2 	 Total Pay of Other Staff 
+ A01151 	 Total Basic Pay of Other Staff 
+ A01156 	 Total Pay of Contract Staff 
+ A01170 	 Others 
+002	 Pay of Staff 
+ A012 	 Total Allowances 
+ A012-1 	 Total Regular Allowances 
+ A01201 	 Senior Post Allowance 
+ A01202 	 House Rent Allowance 
+ A01203 	 Conveyance Allowance 
+ A01208 	 Dress Allowance 
+ A01210 	 Health Risk Allowance 
+ A01216 	 Qualification Allowance 
+ A01217 	 Medical Allowance 
+ A0121B 	 Health Professional Allowance 
+ A0121N 	 Personal Allowance 
+ A01224 	 Entertainment Allowance 
+ A0122N 	 Special Conveyance Allowance 
+ A0122P 	 Special Healthcare Allowance 
+ A0122V 	 Nursing Professional Allowance 
+ A0124H 	 Special Allowance -2021 
+ A0124R 	 Adhoc Releif Allowance -2022 
+ A0124T 	 Special Allowance -2022 
+ A0124X 	 Adhoc Releif Allowance -2023 
+ A01250 	 Incentive Allowance 
+ A01251 	 Mess Allowance 
+ A01252 	 Non Practicing Allowance 
+ A01254 	 Anesthesia Allowance 
+ A0125E 	 Adhoc Releif Allowance -2024 
+ A01265 	 Cash Handling Allowance 
+ A01270 	 Others 
+037	 30% Social Security Benefit (SSB) 
+ A012-2 	 Total Other Allowances 
+ A01273 	 Honoraria 
+ A01274 	 Medical Charges 
+ A01277 	 Contingent Paid Staff 
+ A01278 	 Leave Salary 
+ A02 	 Total Project Pre-Investment Analys 
+ A022 	 Total Research and Service & Exploratory 
+ A02201 	 Research and Surveys & Exploratory Operations 
+ A03 	 Total Operating Expenses 
+ A032 	 Total Communications 
+ A03201 	 Postage and Telegraph 
+ A03202 	 Telephone and Trunk Calls 
+ A03204 	 Electronic Communication 
+ A03205 	 Courier and Pilot Service 
+ A033 	 Total Utilities 
+ A03301 	 Gas 
+ A03302 	 Water 
+ A03303 	 Electricity 
+ A03304 	 Hot and Cold Weather Charges 
+ A034 	 Total Occupancy Costs 
+ A03407 	 Rates and Taxes 
+ A036 	 Total Motor Vehicles 
+ A03603 	 Registration 
+ A038 	 Total Travel and Transportation 
+ A03805 	 Travelling Allowance 
+ A03806 	 Transportation of Goods 
+ A03807 	 POL Charges 
+ A03808 	 Conveyance Charges 
+ A039 	 Total General 
+ A03901 	 Stationery 
+ A03902 	 Printing and Publication 
+ A03905 	 Newspapers Periodicals and Books 
+ A03906 	 Uniforms and Protective Clothing 
+ A03907 	 Advertising and Publicity 
+ A03917 	 Law Charges 
+ A03918 	 Exhibitions, Fairs & Other National Celebrations 
+ A03919 	 Payments to Others for Service Rendered 
+ A03927 	 Purchase of Drug and Medicines 
+ A03942 	 Cost of Other Stores 
+001	 Cost of Other Stores 
+ A03955 	 Computer Stationery 
+ A03970 	 Others 
+001	 Other Miscellaneous 
+008	 Bedding & Clothing 
+009	 X-Ray Films 
+010	 Diet Charges 
+189	 Medical Waste Management 
+ A04 	 Total Employees Retirement Benefit 
+ A041 	 Total Pension 
+A04110	" Payment of Pension
+Contribution of Ex-Local Fund "
+A04114	 Superannuation Encashment of L.P.R 
+ A05 	 Total Grants Subsidies and Write Off 
+ A052 	 Total Grants Domestic 
+ A05216 	 Financial Assistance 
+ A05270 	 Others 
+ A06 	 Total Transfers 
+ A061 	 Total Scholarship 
+ A06102 	 Others 
+ A06101 	 Others 
+ A063 	 Total Entertainment and Gifts 
+ A06301 	 Entertainment and Gifts 
+ A09 	 Total Physical Assets 
+ A092 	 Total Purchase of Computer Equipment 
+ A09201 	 Hardware 
+ A09202 	 Software 
+ A09203 	 Purchase of I.T Equipment 
+ A094 	 Total Purchase of Other Stores and Stocks 
+ A09404 	 Purchase of Medical and Laboratory Equipment 
+ A095 	 Total Purchase of Transport 
+ A09501 	 Purchase of Transport 
+ A096 	 Total Purchase of Plant & Machinery 
+ A09601 	 Purchase of Plant and Machinery 
+ A097 	 Total Purchase Furniture & Fixture 
+ A09701 	 Purchase of Furniture and Fixture 
+ A12 	 Total Civil Works 
+ A123 	 Embankment and Drainage Works 
+ A12303  	 Drainage 
+ A124 	 Total Building and Structures 
+ A12401 	 Office Buildings 
+ A13 	 Total Repairs and Maintenance 
+ A130 	 Total Repair of Transport 
+ A13001 	 Repair of Transport 
+ A131 	 Total Repair of Machinery and Equipment 
+ A13101 	 Repair of Machinery and Equipment 
+ A13102 	 Repair of Medical and Laboratory Equipment 
+ A132 	 Furniture and Fixture 
+ A13201 	 Furniture and Fixture 
+ A133 	 Total Repair & Maintenance of Office Buildings 
+ A13301 	 Repair & Maintenance of Office Buildings 
+ A13303 	 Other Buildings 
+ A137 	 Total Repair of Computer Equipment 
+ A13703 	 Repair of IT Equipment 

@@ -12,6 +12,20 @@ public class LoginDto
     public string Password { get; set; } = string.Empty;
 }
 
+// Cross-authentication DTO for eProcurement integration
+public class CrossAuthDto
+{
+    [Required]
+    public string Username { get; set; } = string.Empty;
+    
+    [Required]
+    public string Password { get; set; } = string.Empty;
+    
+    public string? FullName { get; set; }
+    
+    public string? Department { get; set; }
+}
+
 public class LoginResponseDto
 {
     public string Token { get; set; } = string.Empty;
@@ -84,6 +98,34 @@ public class UpdateUserDto
 }
 
 // Object Code DTOs
+public class ObjectCodeLevelDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public int? ParentId { get; set; }
+    public string? ParentName { get; set; }
+    public bool IsActive { get; set; }
+}
+
+public class CreateObjectCodeLevelDto
+{
+    [Required]
+    [StringLength(100)]
+    public string Name { get; set; } = string.Empty;
+
+    public int? ParentId { get; set; }
+}
+
+public class UpdateObjectCodeLevelDto
+{
+    [StringLength(100)]
+    public string? Name { get; set; }
+
+    public int? ParentId { get; set; }
+
+    public bool? IsActive { get; set; }
+}
+
 public class ObjectCodeDto
 {
     public int Id { get; set; }
@@ -91,6 +133,9 @@ public class ObjectCodeDto
     public string HeadOfAccount { get; set; } = string.Empty;
     public string? Description { get; set; }
     public bool IsActive { get; set; }
+
+    public int? LevelId { get; set; }
+    public string? LevelName { get; set; }
 }
 
 public class CreateObjectCodeDto
@@ -105,6 +150,22 @@ public class CreateObjectCodeDto
     
     [StringLength(500)]
     public string? Description { get; set; }
+
+    public int? LevelId { get; set; }
+}
+
+public class ObjectCodeImportRequestDto
+{
+    [Required]
+    public string Text { get; set; } = string.Empty;
+}
+
+public class ObjectCodeImportResultDto
+{
+    public int Created { get; set; }
+    public int Updated { get; set; }
+    public int Skipped { get; set; }
+    public List<string> Errors { get; set; } = new();
 }
 
 public class UpdateObjectCodeDto
@@ -117,6 +178,8 @@ public class UpdateObjectCodeDto
     
     [StringLength(500)]
     public string? Description { get; set; }
+
+    public int? LevelId { get; set; }
     
     public bool? IsActive { get; set; }
 }
@@ -269,6 +332,17 @@ public class DashboardSummaryDto
     
     public List<TopExpenditureDto> TopExpenditures { get; set; } = new();
     public List<MonthlyTrendDto> MonthlyTrends { get; set; } = new();
+
+    public List<DepartmentSummaryDto> DepartmentSummaries { get; set; } = new();
+}
+
+public class DepartmentSummaryDto
+{
+    public string Department { get; set; } = string.Empty;
+    public decimal TotalBudget { get; set; }
+    public decimal TotalExpenditure { get; set; }
+    public decimal Remaining { get; set; }
+    public decimal UtilizationPercentage { get; set; }
 }
 
 public class BudgetCategorySummaryDto
@@ -294,4 +368,50 @@ public class MonthlyTrendDto
     public string Month { get; set; } = string.Empty;
     public decimal Expenditure { get; set; }
     public decimal Budget { get; set; }
+}
+
+// Expense History DTOs
+public class ExpenseHistoryDto
+{
+    public int Id { get; set; }
+    public int BudgetEntryId { get; set; }
+    public string ExpenseName { get; set; } = string.Empty;
+    public decimal Amount { get; set; }
+    public string BudgetType { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public DateTime ExpenseDate { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public string? CreatedByName { get; set; }
+}
+
+public class CreateExpenseDto
+{
+    [Required]
+    public int BudgetEntryId { get; set; }
+    
+    [Required]
+    [StringLength(200)]
+    public string ExpenseName { get; set; } = string.Empty;
+    
+    [Required]
+    public decimal Amount { get; set; }
+    
+    [Required]
+    [StringLength(10)]
+    public string BudgetType { get; set; } = "AAA"; // AAA, PLA, UHI
+    
+    [StringLength(500)]
+    public string? Description { get; set; }
+    
+    public DateTime? ExpenseDate { get; set; }
+}
+
+// Release Update DTO
+public class UpdateReleasesDto
+{
+    public decimal? FirstReleased { get; set; }
+    public decimal? SecondReleased { get; set; }
+    public decimal? ThirdReleased { get; set; }
+    public decimal? FourthReleased { get; set; }
+    public decimal? SupplementaryBudget { get; set; }
 }

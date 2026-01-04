@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -10,7 +11,12 @@ using RICFinance.API.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
 
 // Configure Entity Framework with LocalDB
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -42,13 +48,20 @@ builder.Services.AddAuthorization();
 // Register Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IBudgetService, BudgetService>();
+builder.Services.AddScoped<IReportService, ReportService>();
 
 // Configure CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
+        policy.WithOrigins(
+                "http://localhost:5173",
+                "http://127.0.0.1:5173",
+                "http://localhost:5100",
+                "http://127.0.0.1:5100",
+                "http://localhost:3000",
+                "http://127.0.0.1:3000")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -106,11 +119,39 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// Auto-migrate database
+// Auto-migrate database and seed default admin user
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     db.Database.Migrate();
+
+    // Ensure a default admin exists and is compatible with plain-text auth
+    var admin = db.Users.FirstOrDefault(u => u.Username.ToLower() == "admin");
+
+    if (admin == null)
+    {
+        db.Users.Add(new RICFinance.API.Models.User
+        {
+            FullName = "Administrator",
+            Username = "admin",
+            Email = "admin@ric.gov.pk",
+            PasswordHash = "admin123",
+            Role = "Admin",
+            Department = "Finance",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        });
+        db.SaveChanges();
+    }
+    else
+    {
+        // If DB was previously seeded with a bcrypt hash, reset to plain text.
+        if (!string.IsNullOrWhiteSpace(admin.PasswordHash) && admin.PasswordHash.StartsWith("$2"))
+        {
+            admin.PasswordHash = "admin123";
+            db.SaveChanges();
+        }
+    }
 }
 
 app.Run();

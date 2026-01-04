@@ -55,14 +55,14 @@ export default function Settings() {
     <div className="space-y-6 max-w-4xl">
       {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-bold text-slate-800">Settings</h1>
-        <p className="text-slate-500 mt-1">Manage your account settings and preferences</p>
+        <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">Settings</h1>
+        <p className="text-slate-500 dark:text-slate-400 mt-1">Manage your account settings and preferences</p>
       </div>
 
       {/* Profile Section */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="p-6 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white">
-          <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+        <div className="p-6 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
+          <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">
             <User className="w-5 h-5 text-teal-500" />
             Profile Information
           </h2>
@@ -73,8 +73,8 @@ export default function Settings() {
               {user?.fullName?.charAt(0) || 'U'}
             </div>
             <div>
-              <h3 className="text-xl font-bold text-slate-800">{user?.fullName}</h3>
-              <p className="text-slate-500">{user?.email}</p>
+              <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">{user?.fullName}</h3>
+              <p className="text-slate-500 dark:text-slate-400">{user?.email}</p>
               <span className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 bg-teal-100 text-teal-700 text-xs font-semibold rounded-full">
                 <Shield className="w-3.5 h-3.5" />
                 {user?.role}
@@ -83,45 +83,45 @@ export default function Settings() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="p-4 bg-slate-50 rounded-xl">
-              <div className="flex items-center gap-3 text-slate-600 mb-1">
+            <div className="p-4 bg-slate-50 dark:bg-slate-950/40 rounded-xl border border-transparent dark:border-slate-800">
+              <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300 mb-1">
                 <User className="w-4 h-4" />
                 <span className="text-sm font-medium">Username</span>
               </div>
-              <p className="text-slate-800 font-semibold pl-7">{user?.username}</p>
+              <p className="text-slate-800 dark:text-slate-100 font-semibold pl-7">{user?.username}</p>
             </div>
 
-            <div className="p-4 bg-slate-50 rounded-xl">
-              <div className="flex items-center gap-3 text-slate-600 mb-1">
+            <div className="p-4 bg-slate-50 dark:bg-slate-950/40 rounded-xl border border-transparent dark:border-slate-800">
+              <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300 mb-1">
                 <Mail className="w-4 h-4" />
                 <span className="text-sm font-medium">Email</span>
               </div>
-              <p className="text-slate-800 font-semibold pl-7">{user?.email}</p>
+              <p className="text-slate-800 dark:text-slate-100 font-semibold pl-7">{user?.email}</p>
             </div>
 
-            <div className="p-4 bg-slate-50 rounded-xl">
-              <div className="flex items-center gap-3 text-slate-600 mb-1">
+            <div className="p-4 bg-slate-50 dark:bg-slate-950/40 rounded-xl border border-transparent dark:border-slate-800">
+              <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300 mb-1">
                 <Building2 className="w-4 h-4" />
                 <span className="text-sm font-medium">Department</span>
               </div>
-              <p className="text-slate-800 font-semibold pl-7">{user?.department || 'Not specified'}</p>
+              <p className="text-slate-800 dark:text-slate-100 font-semibold pl-7">{user?.department || 'Not specified'}</p>
             </div>
 
-            <div className="p-4 bg-slate-50 rounded-xl">
-              <div className="flex items-center gap-3 text-slate-600 mb-1">
+            <div className="p-4 bg-slate-50 dark:bg-slate-950/40 rounded-xl border border-transparent dark:border-slate-800">
+              <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300 mb-1">
                 <Shield className="w-4 h-4" />
                 <span className="text-sm font-medium">Role</span>
               </div>
-              <p className="text-slate-800 font-semibold pl-7">{user?.role}</p>
+              <p className="text-slate-800 dark:text-slate-100 font-semibold pl-7">{user?.role}</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Change Password Section */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="p-6 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white">
-          <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+        <div className="p-6 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
+          <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">
             <Lock className="w-5 h-5 text-teal-500" />
             Change Password
           </h2>
@@ -143,24 +143,24 @@ export default function Settings() {
 
           <form onSubmit={handleChangePassword} className="space-y-5 max-w-md">
             <div>
-              <label className="block text-sm font-medium text-slate-600 mb-1.5">Current Password</label>
+              <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1.5">Current Password</label>
               <input
                 type="password"
                 value={passwordData.currentPassword}
                 onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all"
+                className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100"
                 placeholder="Enter current password"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-600 mb-1.5">New Password</label>
+              <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1.5">New Password</label>
               <input
                 type="password"
                 value={passwordData.newPassword}
                 onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all"
+                className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100"
                 placeholder="Enter new password"
                 required
                 minLength={6}
@@ -168,12 +168,12 @@ export default function Settings() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-600 mb-1.5">Confirm New Password</label>
+              <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1.5">Confirm New Password</label>
               <input
                 type="password"
                 value={passwordData.confirmPassword}
                 onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all"
+                className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100"
                 placeholder="Confirm new password"
                 required
               />
@@ -192,26 +192,26 @@ export default function Settings() {
       </div>
 
       {/* System Info */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="p-6 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white">
-          <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+        <div className="p-6 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
+          <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">
             <SettingsIcon className="w-5 h-5 text-teal-500" />
             System Information
           </h2>
         </div>
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center p-6 bg-gradient-to-br from-teal-50 to-blue-50 rounded-xl">
+            <div className="text-center p-6 bg-gradient-to-br from-teal-50 to-blue-50 dark:from-slate-950 dark:to-slate-900 rounded-xl border border-transparent dark:border-slate-800">
               <p className="text-3xl font-bold text-teal-600">v1.0.0</p>
-              <p className="text-sm text-slate-500 mt-1">Application Version</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Application Version</p>
             </div>
-            <div className="text-center p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl">
+            <div className="text-center p-6 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-slate-950 dark:to-slate-900 rounded-xl border border-transparent dark:border-slate-800">
               <p className="text-3xl font-bold text-purple-600">.NET 9</p>
-              <p className="text-sm text-slate-500 mt-1">Backend Framework</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Backend Framework</p>
             </div>
-            <div className="text-center p-6 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl">
+            <div className="text-center p-6 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-slate-950 dark:to-slate-900 rounded-xl border border-transparent dark:border-slate-800">
               <p className="text-3xl font-bold text-amber-600">React 19</p>
-              <p className="text-sm text-slate-500 mt-1">Frontend Framework</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Frontend Framework</p>
             </div>
           </div>
         </div>

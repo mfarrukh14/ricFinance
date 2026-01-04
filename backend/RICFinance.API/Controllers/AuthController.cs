@@ -27,6 +27,17 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
+    // Cross-authentication endpoint for eProcurement system
+    [HttpPost("cross-auth")]
+    public async Task<ActionResult<LoginResponseDto>> CrossAuth([FromBody] CrossAuthDto dto)
+    {
+        var result = await _authService.CrossAuthLoginAsync(dto);
+        if (result == null)
+            return Unauthorized(new { message = "Cross-authentication failed" });
+
+        return Ok(result);
+    }
+
     [HttpPost("register")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<UserDto>> Register([FromBody] RegisterDto dto)

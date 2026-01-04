@@ -1,5 +1,6 @@
 import React,{ useState, useEffect } from 'react';
 import api from '../services/api';
+import BudgetEntryForm from '../components/BudgetEntryForm';
 import {
   Plus,
   Search,
@@ -9,15 +10,19 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
-  Save,
   AlertCircle,
 } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 function formatCurrency(value) {
-  return new Intl.NumberFormat('en-PK', {
+  return new Intl.NumberFormat('en-IN', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(value || 0);
+}
+
+function formatRupees(value) {
+  return `Rs. ${formatCurrency(value)}`;
 }
 
 function Modal({ isOpen, onClose, title, children, size = 'lg' }) {
@@ -35,12 +40,12 @@ function Modal({ isOpen, onClose, title, children, size = 'lg' }) {
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={onClose} />
         <div
-          className={`relative bg-white rounded-2xl shadow-2xl transform transition-all w-full ${sizeClasses[size]} mx-auto`}
+          className={`relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl transform transition-all w-full ${sizeClasses[size]} mx-auto border border-slate-200 dark:border-slate-800`}
         >
-          <div className="flex items-center justify-between p-6 border-b border-slate-200">
-            <h3 className="text-xl font-semibold text-slate-800">{title}</h3>
-            <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-              <X className="w-5 h-5 text-slate-500" />
+          <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800">
+            <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-100">{title}</h3>
+            <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-950 rounded-lg transition-colors">
+              <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
             </button>
           </div>
           <div className="p-6">{children}</div>
@@ -50,176 +55,9 @@ function Modal({ isOpen, onClose, title, children, size = 'lg' }) {
   );
 }
 
-function BudgetForm({ entry, objectCodes, fiscalYears, onSave, onCancel }) {
-  const [formData, setFormData] = useState({
-    objectCodeId: entry?.objectCodeId || '',
-    fiscalYearId: entry?.fiscalYearId || (fiscalYears.find((f) => f.isCurrent)?.id || ''),
-    totalBudgetAllocation: entry?.totalBudgetAllocation || 0,
-    firstReleased: entry?.firstReleased || 0,
-    secondReleased: entry?.secondReleased || 0,
-    thirdReleased: entry?.thirdReleased || 0,
-    fourthReleased: entry?.fourthReleased || 0,
-    supplementaryBudget: entry?.supplementaryBudget || 0,
-    additionalSurrender: entry?.additionalSurrender || 0,
-    excessReallocation: entry?.excessReallocation || 0,
-    aaaReApp: entry?.aaaReApp || 0,
-    budgetWithheldLapse: entry?.budgetWithheldLapse || 0,
-    aaaExpenditure: entry?.aaaExpenditure || 0,
-    plaBudgetAllocated: entry?.plaBudgetAllocated || 0,
-    plaReApp: entry?.plaReApp || 0,
-    plaExpenditure: entry?.plaExpenditure || 0,
-    uhiBudgetAllocated: entry?.uhiBudgetAllocated || 0,
-    uhiReApp: entry?.uhiReApp || 0,
-    uhiExpenditure: entry?.uhiExpenditure || 0,
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      await onSave(formData);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const InputField = ({ label, field, type = 'number' }) => (
-    <div>
-      <label className="block text-sm font-medium text-slate-600 mb-1.5">{label}</label>
-      <input
-        type={type}
-        value={formData[field]}
-        onChange={(e) => handleChange(field, type === 'number' ? parseFloat(e.target.value) || 0 : e.target.value)}
-        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all"
-      />
-    </div>
-  );
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-700">
-          <AlertCircle className="w-5 h-5" />
-          <span>{error}</span>
-        </div>
-      )}
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-slate-600 mb-1.5">Object Code</label>
-          <select
-            value={formData.objectCodeId}
-            onChange={(e) => handleChange('objectCodeId', parseInt(e.target.value))}
-            className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all"
-            required
-            disabled={!!entry}
-          >
-            <option value="">Select Object Code</option>
-            {objectCodes.map((oc) => (
-              <option key={oc.id} value={oc.id}>
-                {oc.code} - {oc.headOfAccount}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-600 mb-1.5">Fiscal Year</label>
-          <select
-            value={formData.fiscalYearId}
-            onChange={(e) => handleChange('fiscalYearId', parseInt(e.target.value))}
-            className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all"
-            required
-            disabled={!!entry}
-          >
-            <option value="">Select Fiscal Year</option>
-            {fiscalYears.map((fy) => (
-              <option key={fy.id} value={fy.id}>
-                {fy.year} {fy.isCurrent && '(Current)'}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* Non-Development Budget Section */}
-      <div className="bg-teal-50 rounded-xl p-4">
-        <h4 className="text-sm font-semibold text-teal-800 mb-4 flex items-center gap-2">
-          <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
-          Non-Development Budget (AAA)
-        </h4>
-        <div className="grid grid-cols-3 gap-4">
-          <InputField label="Total Budget Allocation" field="totalBudgetAllocation" />
-          <InputField label="1st Released" field="firstReleased" />
-          <InputField label="2nd Released" field="secondReleased" />
-          <InputField label="3rd Released" field="thirdReleased" />
-          <InputField label="4th Released" field="fourthReleased" />
-          <InputField label="Supplementary Budget" field="supplementaryBudget" />
-          <InputField label="Additional/Surrender" field="additionalSurrender" />
-          <InputField label="Excess Reallocation" field="excessReallocation" />
-          <InputField label="Re-appropriation" field="aaaReApp" />
-          <InputField label="Budget Withheld/Lapse" field="budgetWithheldLapse" />
-          <InputField label="AAA Expenditure" field="aaaExpenditure" />
-        </div>
-      </div>
-
-      {/* PLA Budget Section */}
-      <div className="bg-blue-50 rounded-xl p-4">
-        <h4 className="text-sm font-semibold text-blue-800 mb-4 flex items-center gap-2">
-          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-          PLA Budget
-        </h4>
-        <div className="grid grid-cols-3 gap-4">
-          <InputField label="Budget Allocated" field="plaBudgetAllocated" />
-          <InputField label="Re-appropriation" field="plaReApp" />
-          <InputField label="PLA Expenditure" field="plaExpenditure" />
-        </div>
-      </div>
-
-      {/* UHI Budget Section */}
-      <div className="bg-amber-50 rounded-xl p-4">
-        <h4 className="text-sm font-semibold text-amber-800 mb-4 flex items-center gap-2">
-          <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
-          UHI Budget
-        </h4>
-        <div className="grid grid-cols-3 gap-4">
-          <InputField label="Budget Allocated" field="uhiBudgetAllocated" />
-          <InputField label="Re-appropriation" field="uhiReApp" />
-          <InputField label="UHI Expenditure" field="uhiExpenditure" />
-        </div>
-      </div>
-
-      <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-6 py-2.5 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors font-medium"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={loading}
-          className="px-6 py-2.5 bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-xl hover:from-teal-600 hover:to-teal-700 transition-all font-medium flex items-center gap-2 disabled:opacity-50"
-        >
-          <Save className="w-4 h-4" />
-          {loading ? 'Saving...' : 'Save Entry'}
-        </button>
-      </div>
-    </form>
-  );
-}
-
 export default function BudgetEntries() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [entries, setEntries] = useState([]);
   const [objectCodes, setObjectCodes] = useState([]);
   const [fiscalYears, setFiscalYears] = useState([]);
@@ -230,6 +68,7 @@ export default function BudgetEntries() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [pageError, setPageError] = useState('');
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -244,9 +83,17 @@ export default function BudgetEntries() {
 
   const loadInitialData = async () => {
     try {
+      setPageError('');
       const [codes, years] = await Promise.all([api.getObjectCodes(), api.getFiscalYears()]);
       setObjectCodes(codes);
       setFiscalYears(years);
+
+      const desiredYearId = location?.state?.selectedYearId;
+      if (desiredYearId && years.some((y) => y.id === desiredYearId)) {
+        setSelectedYear(desiredYearId);
+        return;
+      }
+
       const current = years.find((y) => y.isCurrent);
       if (current) {
         setSelectedYear(current.id);
@@ -254,37 +101,45 @@ export default function BudgetEntries() {
         setSelectedYear(years[0].id);
       }
     } catch (error) {
-      console.error('Failed to load data:', error);
+      setPageError(error?.message || 'Failed to load initial data.');
     }
   };
 
   const loadEntries = async () => {
     try {
       setLoading(true);
+      setPageError('');
       const data = await api.getBudgetEntries(selectedYear);
       setEntries(data);
     } catch (error) {
-      console.error('Failed to load entries:', error);
+      setPageError(error?.message || 'Failed to load budget entries.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleSave = async (formData) => {
-    if (editingEntry) {
+    try {
+      setPageError('');
       await api.updateBudgetEntry(editingEntry.id, formData);
-    } else {
-      await api.createBudgetEntry(formData);
+      setModalOpen(false);
+      setEditingEntry(null);
+      loadEntries();
+    } catch (error) {
+      setPageError(error?.message || 'Failed to save budget head.');
+      throw error;
     }
-    setModalOpen(false);
-    setEditingEntry(null);
-    loadEntries();
   };
 
   const handleDelete = async (id) => {
-    await api.deleteBudgetEntry(id);
-    setDeleteConfirm(null);
-    loadEntries();
+    try {
+      setPageError('');
+      await api.deleteBudgetEntry(id);
+      setDeleteConfirm(null);
+      loadEntries();
+    } catch (error) {
+      setPageError(error?.message || 'Failed to delete budget head.');
+    }
   };
 
   const openEditModal = (entry) => {
@@ -292,9 +147,8 @@ export default function BudgetEntries() {
     setModalOpen(true);
   };
 
-  const openCreateModal = () => {
-    setEditingEntry(null);
-    setModalOpen(true);
+  const openCreatePage = () => {
+    navigate('/budget/new');
   };
 
   const filteredEntries = entries.filter(
@@ -311,36 +165,44 @@ export default function BudgetEntries() {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800">Budget Entries</h1>
-          <p className="text-slate-500 mt-1">Manage budget allocations and expenditures</p>
+          <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">Budget Entries</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">Manage budget allocations and expenditures</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">All amounts are in Rupees (Rs.).</p>
         </div>
 
         <button
-          onClick={openCreateModal}
+          onClick={openCreatePage}
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-xl hover:from-teal-600 hover:to-teal-700 transition-all font-medium shadow-lg shadow-teal-500/20"
         >
           <Plus className="w-5 h-5" />
-          Add Entry
+          Add New Budget Head
         </button>
       </div>
 
+      {pageError && (
+        <div className="p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-xl flex items-center gap-3 text-red-700 dark:text-red-200 whitespace-pre-line">
+          <AlertCircle className="w-5 h-5" />
+          <span>{pageError}</span>
+        </div>
+      )}
+
       {/* Filters */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-slate-500" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by object code or head of account..."
-              className="w-full pl-12 pr-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all"
+              className="w-full pl-12 pr-4 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100"
             />
           </div>
           <select
             value={selectedYear || ''}
             onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 font-medium min-w-[200px]"
+            className="px-4 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 font-medium min-w-[200px] bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100"
           >
             {fiscalYears.map((fy) => (
               <option key={fy.id} value={fy.id}>
@@ -352,7 +214,7 @@ export default function BudgetEntries() {
       </div>
 
       {/* Budget Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-500"></div>
@@ -362,8 +224,8 @@ export default function BudgetEntries() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-slate-50">
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider sticky left-0 bg-slate-50 z-10">
+                  <tr className="bg-slate-50 dark:bg-slate-950">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider sticky left-0 bg-slate-50 dark:bg-slate-950 z-10">
                       Object Code
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">
@@ -401,27 +263,27 @@ export default function BudgetEntries() {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                   {paginatedEntries.map((entry) => (
-                    <tr key={entry.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-4 py-4 font-medium text-slate-800 sticky left-0 bg-white">
+                    <tr key={entry.id} className="hover:bg-slate-50 dark:hover:bg-slate-950 transition-colors">
+                      <td className="px-4 py-4 font-medium text-slate-800 dark:text-slate-100 sticky left-0 bg-white dark:bg-slate-900">
                         {entry.objectCode}
                       </td>
-                      <td className="px-4 py-4 text-slate-600 max-w-xs truncate">{entry.headOfAccount}</td>
-                      <td className="px-4 py-4 text-right text-slate-800">{formatCurrency(entry.totalAAABudget)}</td>
-                      <td className="px-4 py-4 text-right text-red-600">{formatCurrency(entry.aaaExpenditure)}</td>
-                      <td className="px-4 py-4 text-right text-slate-800">{formatCurrency(entry.plaTotalBudget)}</td>
-                      <td className="px-4 py-4 text-right text-red-600">{formatCurrency(entry.plaExpenditure)}</td>
-                      <td className="px-4 py-4 text-right text-slate-800">{formatCurrency(entry.uhiTotalBudget)}</td>
-                      <td className="px-4 py-4 text-right text-red-600">{formatCurrency(entry.uhiExpenditure)}</td>
-                      <td className="px-4 py-4 text-right font-semibold text-slate-800">
-                        {formatCurrency(entry.consolidatedTotalBudget)}
+                      <td className="px-4 py-4 text-slate-600 dark:text-slate-300 max-w-xs truncate">{entry.headOfAccount}</td>
+                      <td className="px-4 py-4 text-right text-slate-800 dark:text-slate-100">{formatRupees(entry.totalAAABudget)}</td>
+                      <td className="px-4 py-4 text-right text-red-600">{formatRupees(entry.aaaExpenditure)}</td>
+                      <td className="px-4 py-4 text-right text-slate-800 dark:text-slate-100">{formatRupees(entry.plaTotalBudget)}</td>
+                      <td className="px-4 py-4 text-right text-red-600">{formatRupees(entry.plaExpenditure)}</td>
+                      <td className="px-4 py-4 text-right text-slate-800 dark:text-slate-100">{formatRupees(entry.uhiTotalBudget)}</td>
+                      <td className="px-4 py-4 text-right text-red-600">{formatRupees(entry.uhiExpenditure)}</td>
+                      <td className="px-4 py-4 text-right font-semibold text-slate-800 dark:text-slate-100">
+                        {formatRupees(entry.consolidatedTotalBudget)}
                       </td>
                       <td className="px-4 py-4 text-right font-semibold text-red-600">
-                        {formatCurrency(entry.consolidatedTotalExpenditure)}
+                        {formatRupees(entry.consolidatedTotalExpenditure)}
                       </td>
                       <td className="px-4 py-4 text-right font-semibold text-emerald-600">
-                        {formatCurrency(entry.consolidatedRemainingBudget)}
+                        {formatRupees(entry.consolidatedRemainingBudget)}
                       </td>
                       <td className="px-4 py-4">
                         <div className="flex items-center justify-center gap-2">
@@ -455,8 +317,8 @@ export default function BudgetEntries() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between">
-                <p className="text-sm text-slate-500">
+              <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <p className="text-sm text-slate-500 dark:text-slate-400">
                   Showing {(page - 1) * itemsPerPage + 1} to{' '}
                   {Math.min(page * itemsPerPage, filteredEntries.length)} of {filteredEntries.length} entries
                 </p>
@@ -464,16 +326,18 @@ export default function BudgetEntries() {
                   <button
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page === 1}
-                    className="p-2 hover:bg-slate-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-950 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    <ChevronLeft className="w-5 h-5 text-slate-600" />
+                    <ChevronLeft className="w-5 h-5 text-slate-600 dark:text-slate-300" />
                   </button>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
                     <button
                       key={p}
                       onClick={() => setPage(p)}
                       className={`w-10 h-10 rounded-lg font-medium transition-colors ${
-                        page === p ? 'bg-teal-500 text-white' : 'hover:bg-slate-100 text-slate-600'
+                        page === p
+                          ? 'bg-teal-500 text-white'
+                          : 'hover:bg-slate-100 dark:hover:bg-slate-950 text-slate-600 dark:text-slate-300'
                       }`}
                     >
                       {p}
@@ -482,9 +346,9 @@ export default function BudgetEntries() {
                   <button
                     onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     disabled={page === totalPages}
-                    className="p-2 hover:bg-slate-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-950 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    <ChevronRight className="w-5 h-5 text-slate-600" />
+                    <ChevronRight className="w-5 h-5 text-slate-600 dark:text-slate-300" />
                   </button>
                 </div>
               </div>
@@ -500,10 +364,10 @@ export default function BudgetEntries() {
           setModalOpen(false);
           setEditingEntry(null);
         }}
-        title={editingEntry ? 'Edit Budget Entry' : 'Create Budget Entry'}
+        title={'Edit Budget Entry'}
         size="xl"
       >
-        <BudgetForm
+        <BudgetEntryForm
           entry={editingEntry}
           objectCodes={objectCodes}
           fiscalYears={fiscalYears}
@@ -518,11 +382,11 @@ export default function BudgetEntries() {
       {/* Delete Confirmation Modal */}
       <Modal isOpen={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} title="Confirm Delete" size="sm">
         <div className="space-y-6">
-          <p className="text-slate-600">Are you sure you want to delete this budget entry? This action cannot be undone.</p>
+          <p className="text-slate-600 dark:text-slate-300">Are you sure you want to delete this budget entry? This action cannot be undone.</p>
           <div className="flex justify-end gap-3">
             <button
               onClick={() => setDeleteConfirm(null)}
-              className="px-5 py-2.5 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors font-medium"
+              className="px-5 py-2.5 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-200 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-950 transition-colors font-medium"
             >
               Cancel
             </button>

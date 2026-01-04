@@ -3,22 +3,29 @@ import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard,
   FileSpreadsheet,
+  BarChart3,
   Settings,
   Users,
   LogOut,
-  Heart,
   ChevronLeft,
   ChevronRight,
   Calendar,
   BookOpen,
+  FileText,
+  CreditCard,
+  Banknote,
 } from 'lucide-react';
 import React,{ useState } from 'react';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Budget Entries', href: '/budget', icon: FileSpreadsheet },
+  { name: 'Reports', href: '/reports', icon: BarChart3 },
   { name: 'Object Codes', href: '/object-codes', icon: BookOpen },
   { name: 'Fiscal Years', href: '/fiscal-years', icon: Calendar },
+  { name: 'Contingent Bills', href: '/contingent-bills', icon: FileText },
+  { name: 'Schedule of Payments', href: '/schedule-of-payments', icon: Banknote },
+  { name: 'Asaan Cheques', href: '/asaan-cheques', icon: CreditCard },
   { name: 'User Management', href: '/users', icon: Users, adminOnly: true },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
@@ -47,7 +54,7 @@ export default function Sidebar() {
       <div className="p-5 border-b border-slate-700/50">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-500/20 flex-shrink-0">
-            <Heart className="w-6 h-6 text-white" />
+            <img src="/logo.jpg" alt="RIC Logo" className="w-full h-full object-cover rounded-xl" />
           </div>
           {!collapsed && (
             <div className="overflow-hidden">

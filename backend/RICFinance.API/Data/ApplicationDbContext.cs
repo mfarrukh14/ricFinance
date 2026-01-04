@@ -12,9 +12,14 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<User> Users { get; set; }
     public DbSet<ObjectCode> ObjectCodes { get; set; }
+    public DbSet<ObjectCodeLevel> ObjectCodeLevels { get; set; }
     public DbSet<FiscalYear> FiscalYears { get; set; }
     public DbSet<BudgetEntry> BudgetEntries { get; set; }
+    public DbSet<ExpenseHistory> ExpenseHistories { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
+    public DbSet<ContingentBill> ContingentBills { get; set; }
+    public DbSet<ScheduleOfPayment> ScheduleOfPayments { get; set; }
+    public DbSet<AsaanCheque> AsaanCheques { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -31,6 +36,22 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<ObjectCode>(entity =>
         {
             entity.HasIndex(e => e.Code).IsUnique();
+
+            entity.HasOne(e => e.Level)
+                .WithMany()
+                .HasForeignKey(e => e.LevelId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // ObjectCodeLevel configuration
+        modelBuilder.Entity<ObjectCodeLevel>(entity =>
+        {
+            entity.HasIndex(e => new { e.Name, e.ParentId }).IsUnique();
+
+            entity.HasOne(e => e.Parent)
+                .WithMany(e => e.Children)
+                .HasForeignKey(e => e.ParentId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         // FiscalYear configuration
@@ -74,14 +95,63 @@ public class ApplicationDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
-        // Seed default admin user (password: Admin@123)
+        // ContingentBill configuration
+        modelBuilder.Entity<ContingentBill>(entity =>
+        {
+            entity.HasIndex(e => e.BillNumber).IsUnique();
+            
+            entity.HasOne(e => e.ObjectCode)
+                .WithMany()
+                .HasForeignKey(e => e.ObjectCodeId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasOne(e => e.FiscalYear)
+                .WithMany()
+                .HasForeignKey(e => e.FiscalYearId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasOne(e => e.CreatedBy)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedById)
+                .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        // ScheduleOfPayment configuration
+        modelBuilder.Entity<ScheduleOfPayment>(entity =>
+        {
+            entity.HasOne(e => e.ContingentBill)
+                .WithMany(c => c.ScheduleOfPayments)
+                .HasForeignKey(e => e.ContingentBillId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasOne(e => e.CreatedBy)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedById)
+                .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        // AsaanCheque configuration
+        modelBuilder.Entity<AsaanCheque>(entity =>
+        {
+            entity.HasOne(e => e.ScheduleOfPayment)
+                .WithMany(s => s.AsaanCheques)
+                .HasForeignKey(e => e.ScheduleOfPaymentId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasOne(e => e.CreatedBy)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedById)
+                .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        // Seed default admin user (password: admin123)
         modelBuilder.Entity<User>().HasData(new User
         {
             Id = 1,
             FullName = "System Administrator",
             Username = "admin",
             Email = "admin@ric.gov.pk",
-            PasswordHash = "$2a$11$KilIsS23lIjFOdYdbr6jredow9KzaURfWTgZnWxxyKau/DFGb.xai", // Admin@123
+            PasswordHash = "admin123",
             Role = "Admin",
             Department = "IT",
             IsActive = true,

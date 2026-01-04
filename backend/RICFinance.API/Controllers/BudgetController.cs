@@ -43,19 +43,34 @@ public class BudgetController : ControllerBase
     [Authorize(Roles = "Admin,FinanceOfficer")]
     public async Task<ActionResult<ObjectCodeDto>> CreateObjectCode([FromBody] CreateObjectCodeDto dto)
     {
-        var objectCode = await _budgetService.CreateObjectCodeAsync(dto);
-        return CreatedAtAction(nameof(GetObjectCode), new { id = objectCode.Id }, objectCode);
+        try
+        {
+            var objectCode = await _budgetService.CreateObjectCodeAsync(dto);
+            return CreatedAtAction(nameof(GetObjectCode), new { id = objectCode.Id }, objectCode);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+
     }
 
     [HttpPut("object-codes/{id}")]
     [Authorize(Roles = "Admin,FinanceOfficer")]
     public async Task<ActionResult<ObjectCodeDto>> UpdateObjectCode(int id, [FromBody] UpdateObjectCodeDto dto)
     {
-        var objectCode = await _budgetService.UpdateObjectCodeAsync(id, dto);
-        if (objectCode == null)
-            return NotFound();
+        try
+        {
+            var objectCode = await _budgetService.UpdateObjectCodeAsync(id, dto);
+            if (objectCode == null)
+                return NotFound();
 
-        return Ok(objectCode);
+            return Ok(objectCode);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpDelete("object-codes/{id}")]
@@ -67,6 +82,76 @@ public class BudgetController : ControllerBase
             return NotFound();
 
         return NoContent();
+    }
+
+    [HttpPost("object-codes/import")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ObjectCodeImportResultDto>> ImportObjectCodes([FromBody] ObjectCodeImportRequestDto request)
+    {
+        var result = await _budgetService.ImportObjectCodesAsync(request);
+        return Ok(result);
+    }
+
+    #endregion
+
+    #region Object Code Levels
+
+    [HttpGet("object-code-levels")]
+    public async Task<ActionResult<List<ObjectCodeLevelDto>>> GetObjectCodeLevels()
+    {
+        var levels = await _budgetService.GetAllObjectCodeLevelsAsync();
+        return Ok(levels);
+    }
+
+    [HttpPost("object-code-levels")]
+    [Authorize(Roles = "Admin,FinanceOfficer")]
+    public async Task<ActionResult<ObjectCodeLevelDto>> CreateObjectCodeLevel([FromBody] CreateObjectCodeLevelDto dto)
+    {
+        try
+        {
+            var level = await _budgetService.CreateObjectCodeLevelAsync(dto);
+            return CreatedAtAction(nameof(GetObjectCodeLevels), level);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPut("object-code-levels/{id}")]
+    [Authorize(Roles = "Admin,FinanceOfficer")]
+    public async Task<ActionResult<ObjectCodeLevelDto>> UpdateObjectCodeLevel(int id, [FromBody] UpdateObjectCodeLevelDto dto)
+    {
+        try
+        {
+            var level = await _budgetService.UpdateObjectCodeLevelAsync(id, dto);
+            if (level == null)
+                return NotFound();
+
+            return Ok(level);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpDelete("object-code-levels/{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult> DeleteObjectCodeLevel(int id)
+    {
+        try
+        {
+            var result = await _budgetService.DeleteObjectCodeLevelAsync(id);
+            if (!result)
+                return NotFound();
+
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     #endregion
@@ -158,6 +243,40 @@ public class BudgetController : ControllerBase
             return NotFound();
 
         return NoContent();
+    }
+
+    [HttpPut("entries/{id}/releases")]
+    [Authorize(Roles = "Admin,FinanceOfficer")]
+    public async Task<ActionResult<BudgetEntryDto>> UpdateReleases(int id, [FromBody] UpdateReleasesDto dto)
+    {
+        var entry = await _budgetService.UpdateReleasesAsync(id, dto, GetUserId());
+        if (entry == null)
+            return NotFound();
+
+        return Ok(entry);
+    }
+
+    [HttpGet("entries/{id}/expenses")]
+    public async Task<ActionResult<List<ExpenseHistoryDto>>> GetExpenseHistory(int id)
+    {
+        var expenses = await _budgetService.GetExpenseHistoryAsync(id);
+        return Ok(expenses);
+    }
+
+    [HttpPost("entries/{id}/expenses")]
+    [Authorize(Roles = "Admin,FinanceOfficer")]
+    public async Task<ActionResult<ExpenseHistoryDto>> AddExpense(int id, [FromBody] CreateExpenseDto dto)
+    {
+        try
+        {
+            dto.BudgetEntryId = id;
+            var expense = await _budgetService.AddExpenseAsync(dto, GetUserId());
+            return CreatedAtAction(nameof(GetExpenseHistory), new { id }, expense);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     #endregion

@@ -22,6 +22,128 @@ namespace RICFinance.API.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("RICFinance.API.Models.AsaanCheque", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("AsaanAccountNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("AsaanAccountTitle")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("CertificateConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ChequeDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ChequeNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("ChequeSerialNumber")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CostCentre")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CreatedById")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DDOName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("DepartmentName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("DirectorFinanceApprovalDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("DirectorFinanceApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ExecutiveDirectorApprovalDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("ExecutiveDirectorApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ForwardedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ForwardedToBank")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("GrantNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("ObjectCodeDetail")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("PayeeName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("ProjectDescription")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("ReferenceNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("ScheduleDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ScheduleOfPaymentId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ScheduleSerialNumber")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SheetNumber")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("SubDetailedFunction")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("ScheduleOfPaymentId");
+
+                    b.ToTable("AsaanCheques");
+                });
+
             modelBuilder.Entity("RICFinance.API.Models.AuditLog", b =>
                 {
                     b.Property<int>("Id")
@@ -187,6 +309,187 @@ namespace RICFinance.API.Migrations
                     b.ToTable("BudgetEntries");
                 });
 
+            modelBuilder.Entity("RICFinance.API.Models.ContingentBill", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AmountInWords")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("AmountLessDrawn")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("AmountOfBill")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("AvailableBalance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("BillDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("BillNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<decimal>("BudgetAllotment")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CreatedById")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DisallowanceReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("EprocTenderId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ExecutiveDirectorApprovalDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("ExecutiveDirectorApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("FiscalYearId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("GST")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("GrandTotal")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("HeadCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("HeadTitle")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<decimal>("IncomeTax")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("LaborDuty")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("LetterOfAwardNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("MedicalSuperintendentApprovalDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("MedicalSuperintendentApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("NetPayment")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("ObjectCodeId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("PreAuditDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("PreAuditPassed")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("StampDuty")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("SupplierName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("TenderTitle")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<decimal>("TotalPreviousBills")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalUptoDate")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BillNumber")
+                        .IsUnique();
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("FiscalYearId");
+
+                    b.HasIndex("ObjectCodeId");
+
+                    b.ToTable("ContingentBills");
+                });
+
+            modelBuilder.Entity("RICFinance.API.Models.ExpenseHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("BudgetEntryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("BudgetType")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CreatedById")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("ExpenseDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ExpenseName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BudgetEntryId");
+
+                    b.HasIndex("CreatedById");
+
+                    b.ToTable("ExpenseHistories");
+                });
+
             modelBuilder.Entity("RICFinance.API.Models.FiscalYear", b =>
                 {
                     b.Property<int>("Id")
@@ -259,12 +562,145 @@ namespace RICFinance.API.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<int?>("LevelId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Code")
                         .IsUnique();
 
+                    b.HasIndex("LevelId");
+
                     b.ToTable("ObjectCodes");
+                });
+
+            modelBuilder.Entity("RICFinance.API.Models.ObjectCodeLevel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("ParentId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentId");
+
+                    b.HasIndex("Name", "ParentId")
+                        .IsUnique()
+                        .HasFilter("[ParentId] IS NOT NULL");
+
+                    b.ToTable("ObjectCodeLevels");
+                });
+
+            modelBuilder.Entity("RICFinance.API.Models.ScheduleOfPayment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("AccountantApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("AccountsOfficerApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("AuditOfficerApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("BillMonth")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("BudgetOfficerApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("ChequeAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ChequeNumberAndDate")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("ContingentBillId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CreatedById")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("DirectorFinanceApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("ExecutiveDirectorApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("GST")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("GrossAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("HeadCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<decimal>("IncomeTax")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("NetAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("PST")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Particulars")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("PaymentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("SerialNumber")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SheetNumber")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("StampDuty")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContingentBillId");
+
+                    b.HasIndex("CreatedById");
+
+                    b.ToTable("ScheduleOfPayments");
                 });
 
             modelBuilder.Entity("RICFinance.API.Models.User", b =>
@@ -331,10 +767,28 @@ namespace RICFinance.API.Migrations
                             Email = "admin@ric.gov.pk",
                             FullName = "System Administrator",
                             IsActive = true,
-                            PasswordHash = "$2a$11$rBNrkhL8hPZq3.VhVYPZUOQMTVZjXXL9dGE3fCHN1SXKx6JJqhzGK",
+                            PasswordHash = "admin123",
                             Role = "Admin",
                             Username = "admin"
                         });
+                });
+
+            modelBuilder.Entity("RICFinance.API.Models.AsaanCheque", b =>
+                {
+                    b.HasOne("RICFinance.API.Models.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("RICFinance.API.Models.ScheduleOfPayment", "ScheduleOfPayment")
+                        .WithMany("AsaanCheques")
+                        .HasForeignKey("ScheduleOfPaymentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("ScheduleOfPayment");
                 });
 
             modelBuilder.Entity("RICFinance.API.Models.AuditLog", b =>
@@ -381,6 +835,90 @@ namespace RICFinance.API.Migrations
                     b.Navigation("UpdatedBy");
                 });
 
+            modelBuilder.Entity("RICFinance.API.Models.ContingentBill", b =>
+                {
+                    b.HasOne("RICFinance.API.Models.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("RICFinance.API.Models.FiscalYear", "FiscalYear")
+                        .WithMany()
+                        .HasForeignKey("FiscalYearId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("RICFinance.API.Models.ObjectCode", "ObjectCode")
+                        .WithMany()
+                        .HasForeignKey("ObjectCodeId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("FiscalYear");
+
+                    b.Navigation("ObjectCode");
+                });
+
+            modelBuilder.Entity("RICFinance.API.Models.ExpenseHistory", b =>
+                {
+                    b.HasOne("RICFinance.API.Models.BudgetEntry", "BudgetEntry")
+                        .WithMany()
+                        .HasForeignKey("BudgetEntryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("RICFinance.API.Models.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById");
+
+                    b.Navigation("BudgetEntry");
+
+                    b.Navigation("CreatedBy");
+                });
+
+            modelBuilder.Entity("RICFinance.API.Models.ObjectCode", b =>
+                {
+                    b.HasOne("RICFinance.API.Models.ObjectCodeLevel", "Level")
+                        .WithMany()
+                        .HasForeignKey("LevelId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Level");
+                });
+
+            modelBuilder.Entity("RICFinance.API.Models.ObjectCodeLevel", b =>
+                {
+                    b.HasOne("RICFinance.API.Models.ObjectCodeLevel", "Parent")
+                        .WithMany("Children")
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Parent");
+                });
+
+            modelBuilder.Entity("RICFinance.API.Models.ScheduleOfPayment", b =>
+                {
+                    b.HasOne("RICFinance.API.Models.ContingentBill", "ContingentBill")
+                        .WithMany("ScheduleOfPayments")
+                        .HasForeignKey("ContingentBillId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("RICFinance.API.Models.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("ContingentBill");
+
+                    b.Navigation("CreatedBy");
+                });
+
+            modelBuilder.Entity("RICFinance.API.Models.ContingentBill", b =>
+                {
+                    b.Navigation("ScheduleOfPayments");
+                });
+
             modelBuilder.Entity("RICFinance.API.Models.FiscalYear", b =>
                 {
                     b.Navigation("BudgetEntries");
@@ -389,6 +927,16 @@ namespace RICFinance.API.Migrations
             modelBuilder.Entity("RICFinance.API.Models.ObjectCode", b =>
                 {
                     b.Navigation("BudgetEntries");
+                });
+
+            modelBuilder.Entity("RICFinance.API.Models.ObjectCodeLevel", b =>
+                {
+                    b.Navigation("Children");
+                });
+
+            modelBuilder.Entity("RICFinance.API.Models.ScheduleOfPayment", b =>
+                {
+                    b.Navigation("AsaanCheques");
                 });
 #pragma warning restore 612, 618
         }

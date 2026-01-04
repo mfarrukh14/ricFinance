@@ -57,8 +57,32 @@ public class ObjectCode
     public bool IsActive { get; set; } = true;
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public int? LevelId { get; set; }
+
+    [ForeignKey("LevelId")]
+    public ObjectCodeLevel? Level { get; set; }
     
     public ICollection<BudgetEntry> BudgetEntries { get; set; } = new List<BudgetEntry>();
+}
+
+public class ObjectCodeLevel
+{
+    [Key]
+    public int Id { get; set; }
+
+    [Required]
+    [StringLength(100)]
+    public string Name { get; set; } = string.Empty;
+
+    public int? ParentId { get; set; }
+
+    [ForeignKey("ParentId")]
+    public ObjectCodeLevel? Parent { get; set; }
+
+    public ICollection<ObjectCodeLevel> Children { get; set; } = new List<ObjectCodeLevel>();
+
+    public bool IsActive { get; set; } = true;
 }
 
 public class FiscalYear
@@ -217,6 +241,41 @@ public class BudgetEntry
     }
 }
 
+public class ExpenseHistory
+{
+    [Key]
+    public int Id { get; set; }
+    
+    [Required]
+    public int BudgetEntryId { get; set; }
+    
+    [ForeignKey("BudgetEntryId")]
+    public BudgetEntry BudgetEntry { get; set; } = null!;
+    
+    [Required]
+    [StringLength(200)]
+    public string ExpenseName { get; set; } = string.Empty;
+    
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal Amount { get; set; } = 0;
+    
+    [Required]
+    [StringLength(10)]
+    public string BudgetType { get; set; } = "AAA"; // AAA, PLA, UHI
+    
+    [StringLength(500)]
+    public string? Description { get; set; }
+    
+    public DateTime ExpenseDate { get; set; } = DateTime.UtcNow;
+    
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    
+    public int? CreatedById { get; set; }
+    
+    [ForeignKey("CreatedById")]
+    public User? CreatedBy { get; set; }
+}
+
 public class AuditLog
 {
     [Key]
@@ -246,4 +305,288 @@ public class AuditLog
     
     [StringLength(50)]
     public string? IpAddress { get; set; }
+}
+
+// ==================== eProcurement Integration Entities ====================
+
+public class ContingentBill
+{
+    [Key]
+    public int Id { get; set; }
+    
+    [Required]
+    [StringLength(50)]
+    public string BillNumber { get; set; } = string.Empty;
+    
+    public DateTime BillDate { get; set; } = DateTime.UtcNow;
+    
+    // Source from eProcurement
+    public int? EprocTenderId { get; set; }
+    
+    [StringLength(200)]
+    public string? SupplierName { get; set; }
+    
+    [StringLength(200)]
+    public string? TenderTitle { get; set; }
+    
+    [StringLength(100)]
+    public string? LetterOfAwardNumber { get; set; }
+    
+    // Budget allocation
+    public int? ObjectCodeId { get; set; }
+    
+    [ForeignKey("ObjectCodeId")]
+    public ObjectCode? ObjectCode { get; set; }
+    
+    public int? FiscalYearId { get; set; }
+    
+    [ForeignKey("FiscalYearId")]
+    public FiscalYear? FiscalYear { get; set; }
+    
+    [StringLength(50)]
+    public string? HeadCode { get; set; }
+    
+    [StringLength(200)]
+    public string? HeadTitle { get; set; }
+    
+    // Amounts
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal BudgetAllotment { get; set; } = 0;
+    
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal AmountOfBill { get; set; } = 0;
+    
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal TotalPreviousBills { get; set; } = 0;
+    
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal TotalUptoDate { get; set; } = 0;
+    
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal AvailableBalance { get; set; } = 0;
+    
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal GrandTotal { get; set; } = 0;
+    
+    // Tax deductions
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal StampDuty { get; set; } = 0;
+    
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal GST { get; set; } = 0;
+    
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal IncomeTax { get; set; } = 0;
+    
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal LaborDuty { get; set; } = 0;
+    
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal NetPayment { get; set; } = 0;
+    
+    [StringLength(500)]
+    public string? AmountInWords { get; set; }
+    
+    // Status: Pending, Approved, Rejected
+    [Required]
+    [StringLength(20)]
+    public string Status { get; set; } = "Pending";
+    
+    // Approval signatures
+    public bool MedicalSuperintendentApproved { get; set; } = false;
+    public DateTime? MedicalSuperintendentApprovalDate { get; set; }
+    
+    public bool ExecutiveDirectorApproved { get; set; } = false;
+    public DateTime? ExecutiveDirectorApprovalDate { get; set; }
+    
+    public bool PreAuditPassed { get; set; } = false;
+    public DateTime? PreAuditDate { get; set; }
+    
+    [StringLength(500)]
+    public string? DisallowanceReason { get; set; }
+    
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal AmountLessDrawn { get; set; } = 0;
+    
+    // Metadata
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? UpdatedAt { get; set; }
+    
+    public int? CreatedById { get; set; }
+    
+    [ForeignKey("CreatedById")]
+    public User? CreatedBy { get; set; }
+    
+    // Navigation
+    public ICollection<ScheduleOfPayment> ScheduleOfPayments { get; set; } = new List<ScheduleOfPayment>();
+}
+
+public class ScheduleOfPayment
+{
+    [Key]
+    public int Id { get; set; }
+    
+    [Required]
+    public int ContingentBillId { get; set; }
+    
+    [ForeignKey("ContingentBillId")]
+    public ContingentBill ContingentBill { get; set; } = null!;
+    
+    public int SheetNumber { get; set; } = 1;
+    
+    // Payment details (multiple rows possible)
+    public int SerialNumber { get; set; }
+    
+    [StringLength(50)]
+    public string? BillMonth { get; set; }
+    
+    public DateTime? PaymentDate { get; set; }
+    
+    [StringLength(500)]
+    public string? Particulars { get; set; }
+    
+    [StringLength(50)]
+    public string? HeadCode { get; set; }
+    
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal GrossAmount { get; set; } = 0;
+    
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal StampDuty { get; set; } = 0;
+    
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal IncomeTax { get; set; } = 0;
+    
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal GST { get; set; } = 0;
+    
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal PST { get; set; } = 0;
+    
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal NetAmount { get; set; } = 0;
+    
+    [StringLength(100)]
+    public string? ChequeNumberAndDate { get; set; }
+    
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal ChequeAmount { get; set; } = 0;
+    
+    // Status: Pending, Approved
+    [Required]
+    [StringLength(20)]
+    public string Status { get; set; } = "Pending";
+    
+    // Approval signatures
+    public bool AccountantApproved { get; set; } = false;
+    public bool BudgetOfficerApproved { get; set; } = false;
+    public bool AuditOfficerApproved { get; set; } = false;
+    public bool AccountsOfficerApproved { get; set; } = false;
+    public bool DirectorFinanceApproved { get; set; } = false;
+    public bool ExecutiveDirectorApproved { get; set; } = false;
+    
+    // Metadata
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? UpdatedAt { get; set; }
+    
+    public int? CreatedById { get; set; }
+    
+    [ForeignKey("CreatedById")]
+    public User? CreatedBy { get; set; }
+    
+    // Navigation
+    public ICollection<AsaanCheque> AsaanCheques { get; set; } = new List<AsaanCheque>();
+}
+
+public class AsaanCheque
+{
+    [Key]
+    public int Id { get; set; }
+    
+    [Required]
+    public int ScheduleOfPaymentId { get; set; }
+    
+    [ForeignKey("ScheduleOfPaymentId")]
+    public ScheduleOfPayment ScheduleOfPayment { get; set; } = null!;
+    
+    public int SheetNumber { get; set; } = 2;
+    
+    // Header info
+    public int ScheduleSerialNumber { get; set; }
+    
+    public DateTime ScheduleDate { get; set; } = DateTime.UtcNow;
+    
+    [StringLength(200)]
+    public string? DDOName { get; set; }
+    
+    [StringLength(200)]
+    public string? DepartmentName { get; set; }
+    
+    [StringLength(200)]
+    public string? AsaanAccountTitle { get; set; }
+    
+    [StringLength(100)]
+    public string? AsaanAccountNumber { get; set; }
+    
+    [StringLength(50)]
+    public string? CostCentre { get; set; }
+    
+    [StringLength(200)]
+    public string? ProjectDescription { get; set; }
+    
+    [StringLength(200)]
+    public string? SubDetailedFunction { get; set; }
+    
+    [StringLength(50)]
+    public string? GrantNumber { get; set; }
+    
+    // Cheque details
+    public int ChequeSerialNumber { get; set; }
+    
+    [StringLength(50)]
+    public string? ChequeNumber { get; set; }
+    
+    public DateTime? ChequeDate { get; set; }
+    
+    [StringLength(200)]
+    public string? PayeeName { get; set; }
+    
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal Amount { get; set; } = 0;
+    
+    [StringLength(100)]
+    public string? ObjectCodeDetail { get; set; }
+    
+    // Certificate
+    public bool CertificateConfirmed { get; set; } = false;
+    
+    // Status: Pending, Approved, Forwarded
+    [Required]
+    [StringLength(20)]
+    public string Status { get; set; } = "Pending";
+    
+    // Approval
+    public bool DirectorFinanceApproved { get; set; } = false;
+    public DateTime? DirectorFinanceApprovalDate { get; set; }
+    
+    public bool ExecutiveDirectorApproved { get; set; } = false;
+    public DateTime? ExecutiveDirectorApprovalDate { get; set; }
+    
+    // Forwarding info
+    [StringLength(500)]
+    public string? ForwardedToBank { get; set; }
+    
+    [StringLength(100)]
+    public string? ReferenceNumber { get; set; }
+    
+    public DateTime? ForwardedDate { get; set; }
+    
+    // Metadata
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? UpdatedAt { get; set; }
+    
+    public int? CreatedById { get; set; }
+    
+    [ForeignKey("CreatedById")]
+    public User? CreatedBy { get; set; }
 }

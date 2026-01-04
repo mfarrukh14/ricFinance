@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Pc\\Desktop\\MyArchive\\code\\ricFinance\\backend\\RICFinance.API\\RICFinance.API.csproj": {}
+    "C:\\Users\\Pc\\Desktop\\MyArchive\\code\\ric\\fin\\backend\\RICFinance.api\\RICFinance.API.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Pc\\Desktop\\MyArchive\\code\\ricFinance\\backend\\RICFinance.API\\RICFinance.API.csproj": {
+    "C:\\Users\\Pc\\Desktop\\MyArchive\\code\\ric\\fin\\backend\\RICFinance.api\\RICFinance.API.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Pc\\Desktop\\MyArchive\\code\\ricFinance\\backend\\RICFinance.API\\RICFinance.API.csproj",
+        "projectUniqueName": "C:\\Users\\Pc\\Desktop\\MyArchive\\code\\ric\\fin\\backend\\RICFinance.api\\RICFinance.API.csproj",
         "projectName": "RICFinance.API",
-        "projectPath": "C:\\Users\\Pc\\Desktop\\MyArchive\\code\\ricFinance\\backend\\RICFinance.API\\RICFinance.API.csproj",
+        "projectPath": "C:\\Users\\Pc\\Desktop\\MyArchive\\code\\ric\\fin\\backend\\RICFinance.api\\RICFinance.API.csproj",
         "packagesPath": "C:\\Users\\Pc\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Pc\\Desktop\\MyArchive\\code\\ricFinance\\backend\\RICFinance.API\\obj\\",
+        "outputPath": "C:\\Users\\Pc\\Desktop\\MyArchive\\code\\ric\\fin\\backend\\RICFinance.api\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -53,6 +53,10 @@
             "BCrypt.Net-Next": {
               "target": "Package",
               "version": "[4.0.3, )"
+            },
+            "ClosedXML": {
+              "target": "Package",
+              "version": "[0.104.2, )"
             },
             "Microsoft.AspNetCore.Authentication.JwtBearer": {
               "target": "Package",

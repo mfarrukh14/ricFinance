@@ -23,11 +23,11 @@ function Modal({ isOpen, onClose, title, children }) {
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={onClose} />
-        <div className="relative bg-white rounded-2xl shadow-2xl transform transition-all w-full max-w-lg mx-auto">
-          <div className="flex items-center justify-between p-6 border-b border-slate-200">
-            <h3 className="text-xl font-semibold text-slate-800">{title}</h3>
-            <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-              <X className="w-5 h-5 text-slate-500" />
+        <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl transform transition-all w-full max-w-lg mx-auto border border-slate-200 dark:border-slate-800">
+          <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800">
+            <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-100">{title}</h3>
+            <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-950 rounded-lg transition-colors">
+              <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
             </button>
           </div>
           <div className="p-6">{children}</div>
@@ -149,11 +149,11 @@ export default function UserManagement() {
   const getRoleColor = (role) => {
     switch (role) {
       case 'Admin':
-        return 'bg-purple-100 text-purple-700';
+        return 'bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-200';
       case 'FinanceOfficer':
-        return 'bg-blue-100 text-blue-700';
+        return 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-200';
       default:
-        return 'bg-slate-100 text-slate-700';
+        return 'bg-slate-100 text-slate-700 dark:bg-slate-700/30 dark:text-slate-200';
     }
   };
 
@@ -162,8 +162,8 @@ export default function UserManagement() {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800">User Management</h1>
-          <p className="text-slate-500 mt-1">Manage system users and permissions</p>
+          <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">User Management</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">Manage system users and permissions</p>
         </div>
 
         <button
@@ -176,21 +176,21 @@ export default function UserManagement() {
       </div>
 
       {/* Search */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6">
         <div className="relative max-w-md">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-slate-500" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search users..."
-            className="w-full pl-12 pr-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all"
+            className="w-full pl-12 pr-4 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100"
           />
         </div>
       </div>
 
       {/* Users Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-500"></div>
@@ -198,7 +198,7 @@ export default function UserManagement() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-50">
+              <thead className="bg-slate-50 dark:bg-slate-950">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
                     User
@@ -223,21 +223,21 @@ export default function UserManagement() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                 {filteredUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-slate-50 transition-colors">
+                  <tr key={user.id} className="hover:bg-slate-50 dark:hover:bg-slate-950 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-blue-600 rounded-xl flex items-center justify-center text-white font-semibold shadow-lg">
                           {user.fullName.charAt(0)}
                         </div>
                         <div>
-                          <p className="font-medium text-slate-800">{user.fullName}</p>
-                          <p className="text-sm text-slate-500">{user.email}</p>
+                          <p className="font-medium text-slate-800 dark:text-slate-100">{user.fullName}</p>
+                          <p className="text-sm text-slate-500 dark:text-slate-400">{user.email}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-slate-600">{user.username}</td>
+                    <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{user.username}</td>
                     <td className="px-6 py-4 text-slate-600">{user.department || '-'}</td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${getRoleColor(user.role)}`}>
@@ -311,7 +311,7 @@ export default function UserManagement() {
       >
         <form onSubmit={handleSubmit} className="space-y-5">
           {formError && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-700">
+            <div className="p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-xl flex items-center gap-3 text-red-700 dark:text-red-200">
               <AlertCircle className="w-5 h-5" />
               <span>{formError}</span>
             </div>
@@ -325,7 +325,7 @@ export default function UserManagement() {
                 type="text"
                 value={formData.fullName}
                 onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                className="w-full pl-12 pr-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all"
+                className="w-full pl-12 pr-4 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100"
                 placeholder="Enter full name"
                 required
               />
@@ -339,7 +339,7 @@ export default function UserManagement() {
                 type="text"
                 value={formData.username}
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all"
+                className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100"
                 placeholder="Enter username"
                 required
               />
@@ -354,7 +354,7 @@ export default function UserManagement() {
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full pl-12 pr-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all"
+                className="w-full pl-12 pr-4 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100"
                 placeholder="Enter email"
                 required
               />
@@ -368,7 +368,7 @@ export default function UserManagement() {
                 type="password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all"
+                className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100"
                 placeholder="Enter password"
                 required={!editingUser}
                 minLength={6}
@@ -384,7 +384,7 @@ export default function UserManagement() {
                 type="text"
                 value={formData.department}
                 onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                className="w-full pl-12 pr-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all"
+                className="w-full pl-12 pr-4 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100"
                 placeholder="Enter department"
               />
             </div>
@@ -395,7 +395,7 @@ export default function UserManagement() {
             <select
               value={formData.role}
               onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all"
+              className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100"
             >
               {roles.map((role) => (
                 <option key={role} value={role}>
@@ -409,7 +409,7 @@ export default function UserManagement() {
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="px-5 py-2.5 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors font-medium"
+              className="px-5 py-2.5 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-200 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-950 transition-colors font-medium"
             >
               Cancel
             </button>
@@ -428,13 +428,13 @@ export default function UserManagement() {
       {/* Delete Confirmation Modal */}
       <Modal isOpen={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} title="Confirm Delete">
         <div className="space-y-6">
-          <p className="text-slate-600">
+          <p className="text-slate-600 dark:text-slate-300">
             Are you sure you want to deactivate this user? They will no longer be able to access the system.
           </p>
           <div className="flex justify-end gap-3">
             <button
               onClick={() => setDeleteConfirm(null)}
-              className="px-5 py-2.5 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors font-medium"
+              className="px-5 py-2.5 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-200 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-950 transition-colors font-medium"
             >
               Cancel
             </button>
