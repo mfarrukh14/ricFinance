@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import * as XLSX from 'xlsx';
+import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import {
   FileSpreadsheet,
@@ -12,6 +14,7 @@ import {
 } from 'lucide-react';
 
 export default function ScheduleOfPayments() {
+  const { user } = useAuth();
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -19,6 +22,7 @@ export default function ScheduleOfPayments() {
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [selectedScheduleIds, setSelectedScheduleIds] = useState([]);
 
   const [chequeNumberDraft, setChequeNumberDraft] = useState('');
   const [chequeDateDraft, setChequeDateDraft] = useState('');
@@ -29,8 +33,19 @@ export default function ScheduleOfPayments() {
   const getStatus = (s) => getProp(s, 'status', 'Status');
   const getBillNumber = (s) =>
     getProp(s, 'billNumber', 'BillNumber') ?? getProp(getContingentBill(s), 'billNumber', 'BillNumber');
+  const getBillDate = (s) =>
+    getProp(s, 'billDate', 'BillDate') ?? getProp(getContingentBill(s), 'billDate', 'BillDate');
+  const getSupplierName = (s) =>
+    getProp(s, 'supplierName', 'SupplierName') ?? getProp(getContingentBill(s), 'supplierName', 'SupplierName');
   const getHeadCode = (s) =>
     getProp(s, 'headCode', 'HeadCode') ?? getProp(getContingentBill(s), 'headCode', 'HeadCode');
+  const getParticulars = (s) => getProp(s, 'particulars', 'Particulars') ?? '';
+  const getGrossAmount = (s) => getProp(s, 'grossAmount', 'GrossAmount') ?? 0;
+  const getStampDuty = (s) => getProp(s, 'stampDuty', 'StampDuty') ?? 0;
+  const getIncomeTax = (s) => getProp(s, 'incomeTax', 'IncomeTax') ?? 0;
+  const getGst = (s) => getProp(s, 'gst', 'GST') ?? 0;
+  const getPst = (s) => getProp(s, 'pst', 'PST') ?? 0;
+  const getNetAmount = (s) => getProp(s, 'netAmount', 'NetAmount') ?? 0;
 
   const getChequeNumberAndDate = (s) =>
     getProp(s, 'chequeNumberAndDate', 'ChequeNumberAndDate') ?? '';
@@ -61,11 +76,125 @@ export default function ScheduleOfPayments() {
       setLoading(true);
       const data = await api.getScheduleOfPayments();
       setSchedules(data);
+      setSelectedScheduleIds([]);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleScheduleSelection = (scheduleId) => {
+    setSelectedScheduleIds((prev) =>
+      prev.includes(scheduleId) ? prev.filter((id) => id !== scheduleId) : [...prev, scheduleId]
+    );
+  };
+
+  const handleCreateSheet2 = () => {
+    const selected = schedules.filter((s) => selectedScheduleIds.includes(getScheduleId(s)));
+    if (selected.length === 0) {
+      setError('Please select at least one schedule.');
+      return;
+    }
+
+    const rows = [];
+    rows.push([
+      'Bill No',
+      'Date',
+      'Particulars',
+      'Head',
+      'Gross Amount',
+      'Stamp Duty',
+      'Income Tax',
+      'GST',
+      'PST 15%',
+      'Net Amount',
+      'Cheque No & Date',
+      'Page No',
+      'Amount',
+    ]);
+
+    const grouped = selected.reduce((acc, item) => {
+      const supplier = getSupplierName(item) || 'Unknown Supplier';
+      if (!acc[supplier]) acc[supplier] = [];
+      acc[supplier].push(item);
+      return acc;
+    }, {});
+
+    const supplierNames = Object.keys(grouped).sort();
+    let grandTotal = 0;
+
+    supplierNames.forEach((supplier) => {
+      const items = grouped[supplier].sort((a, b) => {
+        const da = new Date(getBillDate(a) || 0).getTime();
+        const db = new Date(getBillDate(b) || 0).getTime();
+        return da - db;
+      });
+
+      let groupTotal = 0;
+
+      items.forEach((item) => {
+        const net = Number(getNetAmount(item) || 0);
+        groupTotal += net;
+        rows.push([
+          getBillNumber(item) || '',
+          getBillDate(item) ? new Date(getBillDate(item)).toLocaleDateString() : '',
+          getParticulars(item) || supplier,
+          getHeadCode(item) || '',
+          getGrossAmount(item) || 0,
+          getStampDuty(item) || 0,
+          getIncomeTax(item) || 0,
+          getGst(item) || 0,
+          getPst(item) || 0,
+          net || 0,
+          '',
+          '',
+          '',
+        ]);
+      });
+
+      const cheque = getChequeNumberAndDate(items[0]) || '';
+      rows.push([
+        '',
+        '',
+        supplier,
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        cheque,
+        '',
+        groupTotal,
+      ]);
+
+      grandTotal += groupTotal;
+    });
+
+    rows.push(['', '', 'TOTAL', '', '', '', '', '', '', '', '', '', grandTotal]);
+
+    const worksheet = XLSX.utils.aoa_to_sheet(rows);
+    worksheet['!cols'] = [
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 40 },
+      { wch: 12 },
+      { wch: 14 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 10 },
+      { wch: 14 },
+      { wch: 20 },
+      { wch: 10 },
+      { wch: 14 },
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet2');
+    XLSX.writeFile(workbook, 'ScheduleOfPayments_Sheet2.xlsx');
   };
 
   const handleApprove = async (id, role) => {
@@ -123,12 +252,17 @@ export default function ScheduleOfPayments() {
 
   const approvalRoles = [
     { key: 'accountant', label: 'Accountant', field: 'accountantApproved' },
-    { key: 'budget_officer', label: 'Budget & Accounts Officer', field: 'budgetOfficerApproved' },
     { key: 'audit_officer', label: 'Audit Officer', field: 'auditOfficerApproved' },
     { key: 'accounts_officer', label: 'Accounts Officer', field: 'accountsOfficerApproved' },
     { key: 'director_finance', label: 'Director Finance', field: 'directorFinanceApproved' },
-    { key: 'executive_director', label: 'Executive Director', field: 'executiveDirectorApproved' },
   ];
+
+  const roleKeyMap = {
+    accountant: 'Accountant',
+    audit_officer: 'AuditOfficer',
+    accounts_officer: 'AccountOfficer',
+    director_finance: 'DirectorFinance',
+  };
 
   if (loading) {
     return (
@@ -141,11 +275,20 @@ export default function ScheduleOfPayments() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Schedule of Payments</h1>
-        <p className="text-slate-600 dark:text-slate-400">
-          Payment schedules generated from approved contingent bills
-        </p>
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Schedule of Payments</h1>
+          <p className="text-slate-600 dark:text-slate-400">
+            Payment schedules generated from approved contingent bills
+          </p>
+        </div>
+        <button
+          onClick={handleCreateSheet2}
+          disabled={selectedScheduleIds.length === 0}
+          className="px-4 py-2 bg-teal-500 hover:bg-teal-600 disabled:opacity-60 text-white rounded-lg"
+        >
+          Create Sheet2
+        </button>
       </div>
 
       {error && (
@@ -184,6 +327,9 @@ export default function ScheduleOfPayments() {
             <thead className="bg-slate-50 dark:bg-slate-700/50">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">
+                  Select
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">
                   Sr. No.
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">
@@ -215,13 +361,21 @@ export default function ScheduleOfPayments() {
             <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
               {filteredSchedules.length === 0 ? (
                 <tr>
-                  <td colSpan="9" className="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
+                  <td colSpan="10" className="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
                     No payment schedules found
                   </td>
                 </tr>
               ) : (
                 filteredSchedules.map((schedule, index) => (
                   <tr key={getScheduleId(schedule)} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                    <td className="px-4 py-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedScheduleIds.includes(getScheduleId(schedule))}
+                        onChange={() => toggleScheduleSelection(getScheduleId(schedule))}
+                        className="h-4 w-4 text-teal-600 border-slate-300 rounded"
+                      />
+                    </td>
                     <td className="px-4 py-3 text-sm text-slate-900 dark:text-white">{index + 1}</td>
                     <td className="px-4 py-3 text-sm text-slate-900 dark:text-white">{getProp(schedule, 'billMonth', 'BillMonth')}</td>
                     <td className="px-4 py-3 text-sm text-slate-500 dark:text-slate-400">
@@ -411,6 +565,8 @@ export default function ScheduleOfPayments() {
                           return !!getProp(selectedSchedule, r.field, prevPascal);
                         }));
 
+                    const roleMatches = user?.role === roleKeyMap[role.key];
+
                     return (
                       <div
                         key={role.key}
@@ -425,7 +581,7 @@ export default function ScheduleOfPayments() {
                         </div>
                         {isApproved ? (
                           <CheckCircle className="w-6 h-6 text-green-500 mx-auto" />
-                        ) : canApprove ? (
+                        ) : canApprove && roleMatches ? (
                           <button
                             onClick={() => handleApprove(getScheduleId(selectedSchedule), role.key)}
                             className="px-3 py-1 bg-teal-500 hover:bg-teal-600 text-white text-xs rounded"

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RICFinance.API.Data;
 
@@ -11,9 +12,11 @@ using RICFinance.API.Data;
 namespace RICFinance.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260116200333_AddWorkflowFields")]
+    partial class AddWorkflowFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -225,21 +228,6 @@ namespace RICFinance.API.Migrations
 
                     b.Property<int?>("CreatedById")
                         .HasColumnType("int");
-
-                    b.Property<decimal>("DevelopmentBudgetAllocated")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("DevelopmentExpenditure")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("DevelopmentReApp")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("DevelopmentRemainingBudget")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("DevelopmentTotalBudget")
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("ExcessReallocation")
                         .HasColumnType("decimal(18,2)");

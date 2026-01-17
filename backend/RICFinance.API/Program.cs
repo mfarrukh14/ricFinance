@@ -125,12 +125,10 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     db.Database.Migrate();
 
-    // Ensure a default admin exists and is compatible with plain-text auth
-    var admin = db.Users.FirstOrDefault(u => u.Username.ToLower() == "admin");
-
-    if (admin == null)
+    // Ensure default users exist (plain-text auth)
+    var seedUsers = new List<RICFinance.API.Models.User>
     {
-        db.Users.Add(new RICFinance.API.Models.User
+        new()
         {
             FullName = "Administrator",
             Username = "admin",
@@ -140,18 +138,92 @@ using (var scope = app.Services.CreateScope())
             Department = "Finance",
             IsActive = true,
             CreatedAt = DateTime.UtcNow
-        });
-        db.SaveChanges();
-    }
-    else
-    {
-        // If DB was previously seeded with a bcrypt hash, reset to plain text.
-        if (!string.IsNullOrWhiteSpace(admin.PasswordHash) && admin.PasswordHash.StartsWith("$2"))
+        },
+        new()
         {
-            admin.PasswordHash = "admin123";
-            db.SaveChanges();
+            FullName = "Computer Operator",
+            Username = "computeroperator",
+            Email = "computeroperator@ric.gov.pk",
+            PasswordHash = "operator123",
+            Role = "ComputerOperator",
+            Department = "Finance",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        },
+        new()
+        {
+            FullName = "Accountant",
+            Username = "accountant",
+            Email = "accountant@ric.gov.pk",
+            PasswordHash = "accountant123",
+            Role = "Accountant",
+            Department = "Finance",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        },
+        new()
+        {
+            FullName = "Account Officer",
+            Username = "accountofficer",
+            Email = "accountofficer@ric.gov.pk",
+            PasswordHash = "account123",
+            Role = "AccountOfficer",
+            Department = "Finance",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        },
+        new()
+        {
+            FullName = "Audit Officer",
+            Username = "auditofficer",
+            Email = "auditofficer@ric.gov.pk",
+            PasswordHash = "audit123",
+            Role = "AuditOfficer",
+            Department = "Finance",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        },
+        new()
+        {
+            FullName = "Senior Budget & Account Officer",
+            Username = "seniorbudget",
+            Email = "seniorbudget@ric.gov.pk",
+            PasswordHash = "senior123",
+            Role = "SeniorBudgetOfficer",
+            Department = "Finance",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        },
+        new()
+        {
+            FullName = "Director Finance",
+            Username = "directorfinance",
+            Email = "directorfinance@ric.gov.pk",
+            PasswordHash = "director123",
+            Role = "DirectorFinance",
+            Department = "Finance",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        }
+    };
+
+    foreach (var seedUser in seedUsers)
+    {
+        var existing = db.Users.FirstOrDefault(u => u.Username.ToLower() == seedUser.Username.ToLower());
+        if (existing == null)
+        {
+            db.Users.Add(seedUser);
+            continue;
+        }
+
+        // If DB was previously seeded with a bcrypt hash, reset to plain text.
+        if (!string.IsNullOrWhiteSpace(existing.PasswordHash) && existing.PasswordHash.StartsWith("$2"))
+        {
+            existing.PasswordHash = seedUser.PasswordHash;
         }
     }
+
+    db.SaveChanges();
 }
 
 app.Run();

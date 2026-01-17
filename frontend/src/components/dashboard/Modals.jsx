@@ -85,6 +85,7 @@ export function ExpenseModal({ open, onClose, expenseForm, setExpenseForm, onSav
             className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
           >
             <option value="AAA">AAA (Non-Development)</option>
+            <option value="DEV">AAA (Development)</option>
             <option value="PLA">PLA</option>
             <option value="UHI">UHI</option>
           </select>

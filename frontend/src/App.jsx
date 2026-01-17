@@ -13,6 +13,10 @@ import Settings from './pages/Settings';
 import ContingentBills from './pages/ContingentBills';
 import ScheduleOfPayments from './pages/ScheduleOfPayments';
 import AsaanCheques from './pages/AsaanCheques';
+import PurchaseOrders from './pages/PurchaseOrders';
+import RoleDesk from './pages/RoleDesk';
+import PrintableReport from './pages/PrintableReport';
+import SanctionOrders from './pages/SanctionOrders';
 import React from 'react';
 import { ThemeProvider } from './context/ThemeContext';
 
@@ -76,12 +80,16 @@ function AppRoutes() {
         }
       >
         <Route index element={<Dashboard />} />
+        <Route path="desk" element={<RoleDesk />} />
+        <Route path="desk/print/:id" element={<PrintableReport />} />
         <Route path="budget" element={<BudgetEntries />} />
         <Route path="budget/new" element={<BudgetEntryCreate />} />
         <Route path="reports" element={<Reports />} />
         <Route path="object-codes" element={<ObjectCodes />} />
         <Route path="fiscal-years" element={<FiscalYears />} />
         <Route path="contingent-bills" element={<ContingentBills />} />
+        <Route path="sanction-orders" element={<SanctionOrders />} />
+        <Route path="purchase-orders" element={<PurchaseOrders />} />
         <Route path="schedule-of-payments" element={<ScheduleOfPayments />} />
         <Route path="asaan-cheques" element={<AsaanCheques />} />
         <Route

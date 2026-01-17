@@ -235,6 +235,13 @@ public class BudgetEntryDto
     public decimal BudgetWithheldLapse { get; set; }
     public decimal AAAExpenditure { get; set; }
     public decimal AAARemainingBudget { get; set; }
+
+    // Development Budget (AAA)
+    public decimal DevelopmentBudgetAllocated { get; set; }
+    public decimal DevelopmentReApp { get; set; }
+    public decimal DevelopmentTotalBudget { get; set; }
+    public decimal DevelopmentExpenditure { get; set; }
+    public decimal DevelopmentRemainingBudget { get; set; }
     
     // PLA Budget
     public decimal PLABudgetAllocated { get; set; }
@@ -279,6 +286,11 @@ public class CreateBudgetEntryDto
     public decimal AAAReApp { get; set; }
     public decimal BudgetWithheldLapse { get; set; }
     public decimal AAAExpenditure { get; set; }
+
+    // Development Budget (AAA)
+    public decimal DevelopmentBudgetAllocated { get; set; }
+    public decimal DevelopmentReApp { get; set; }
+    public decimal DevelopmentExpenditure { get; set; }
     
     // PLA Budget
     public decimal PLABudgetAllocated { get; set; }
@@ -305,6 +317,11 @@ public class UpdateBudgetEntryDto
     public decimal? AAAReApp { get; set; }
     public decimal? BudgetWithheldLapse { get; set; }
     public decimal? AAAExpenditure { get; set; }
+
+    // Development Budget (AAA)
+    public decimal? DevelopmentBudgetAllocated { get; set; }
+    public decimal? DevelopmentReApp { get; set; }
+    public decimal? DevelopmentExpenditure { get; set; }
     
     // PLA Budget
     public decimal? PLABudgetAllocated { get; set; }
@@ -327,6 +344,7 @@ public class DashboardSummaryDto
     public decimal UtilizationPercentage { get; set; }
     
     public BudgetCategorySummaryDto AAABudget { get; set; } = new();
+    public BudgetCategorySummaryDto DevelopmentBudget { get; set; } = new();
     public BudgetCategorySummaryDto PLABudget { get; set; } = new();
     public BudgetCategorySummaryDto UHIBudget { get; set; } = new();
     
@@ -398,7 +416,7 @@ public class CreateExpenseDto
     
     [Required]
     [StringLength(10)]
-    public string BudgetType { get; set; } = "AAA"; // AAA, PLA, UHI
+    public string BudgetType { get; set; } = "AAA"; // AAA, DEV, PLA, UHI
     
     [StringLength(500)]
     public string? Description { get; set; }

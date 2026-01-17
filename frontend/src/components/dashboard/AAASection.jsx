@@ -18,6 +18,14 @@ export default function AAASection({ budgetEntry, expenseHistory }) {
   const aaaRemaining = budgetEntry.aaaRemainingBudget ?? 0;
   const aaaUtil = totalAAABudget > 0 ? (aaaExp / totalAAABudget) * 100 : 0;
 
+  // Development budget figures
+  const devAllocated = budgetEntry.developmentBudgetAllocated ?? 0;
+  const devReApp = budgetEntry.developmentReApp ?? 0;
+  const devTotal = budgetEntry.developmentTotalBudget ?? 0;
+  const devExp = budgetEntry.developmentExpenditure ?? 0;
+  const devRemaining = budgetEntry.developmentRemainingBudget ?? 0;
+  const devUtil = devTotal > 0 ? (devExp / devTotal) * 100 : 0;
+
   // Release amounts
   const firstReleased = budgetEntry.firstReleased ?? 0;
   const secondReleased = budgetEntry.secondReleased ?? 0;
@@ -30,6 +38,7 @@ export default function AAASection({ budgetEntry, expenseHistory }) {
 
   // Filter AAA expenses
   const aaaExpenses = expenseHistory.filter(e => e.budgetType === 'AAA');
+  const devExpenses = expenseHistory.filter(e => e.budgetType === 'DEV');
 
   // Release breakdown data
   const releasesData = [
@@ -92,6 +101,16 @@ export default function AAASection({ budgetEntry, expenseHistory }) {
         utilizationPct={aaaUtil}
       />
 
+      <BudgetCard
+        title="Development Budget (AAA)"
+        icon={Layers}
+        gradient="from-emerald-500 to-lime-600"
+        budget={devTotal}
+        expenditure={devExp}
+        remaining={devRemaining}
+        utilizationPct={devUtil}
+      />
+
       {/* Key Metrics Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800">
@@ -121,6 +140,37 @@ export default function AAASection({ budgetEntry, expenseHistory }) {
             <span className="text-xs font-medium">Withheld/Lapse</span>
           </div>
           <p className="text-xl font-bold text-slate-800 dark:text-slate-100">Rs. {formatCurrency(budgetWithheld)}</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800">
+          <div className="flex items-center gap-2 text-emerald-600 mb-2">
+            <DollarSign className="w-4 h-4" />
+            <span className="text-xs font-medium">Dev Allocated</span>
+          </div>
+          <p className="text-xl font-bold text-slate-800 dark:text-slate-100">Rs. {formatCurrency(devAllocated)}</p>
+        </div>
+        <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800">
+          <div className="flex items-center gap-2 text-emerald-600 mb-2">
+            <TrendingUp className="w-4 h-4" />
+            <span className="text-xs font-medium">Dev Re-Appropriation</span>
+          </div>
+          <p className="text-xl font-bold text-slate-800 dark:text-slate-100">Rs. {formatCurrency(devReApp)}</p>
+        </div>
+        <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800">
+          <div className="flex items-center gap-2 text-emerald-600 mb-2">
+            <BarChart3 className="w-4 h-4" />
+            <span className="text-xs font-medium">Dev Budget</span>
+          </div>
+          <p className="text-xl font-bold text-slate-800 dark:text-slate-100">Rs. {formatCurrency(devTotal)}</p>
+        </div>
+        <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800">
+          <div className="flex items-center gap-2 text-emerald-600 mb-2">
+            <BarChart3 className="w-4 h-4" />
+            <span className="text-xs font-medium">Dev Remaining</span>
+          </div>
+          <p className="text-xl font-bold text-slate-800 dark:text-slate-100">Rs. {formatCurrency(devRemaining)}</p>
         </div>
       </div>
 
@@ -253,6 +303,33 @@ export default function AAASection({ budgetEntry, expenseHistory }) {
           <div className="text-center py-8 text-slate-400">
             <Receipt className="w-8 h-8 mx-auto mb-2 opacity-50" />
             <p>No AAA expenses recorded</p>
+          </div>
+        )}
+      </div>
+
+      <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-800">
+        <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
+          <Clock className="w-5 h-5 text-emerald-500" /> Development Expense History
+        </h3>
+        {devExpenses.length > 0 ? (
+          <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+            {devExpenses.map((exp) => (
+              <div key={exp.id} className="flex items-center justify-between p-3 bg-emerald-50 dark:bg-emerald-950/20 rounded-xl border border-emerald-100 dark:border-emerald-900">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-500 text-white font-bold text-sm">DEV</div>
+                  <div>
+                    <p className="font-medium text-slate-800 dark:text-slate-100 text-sm">{exp.expenseName}</p>
+                    <p className="text-xs text-slate-500">{formatDate(exp.expenseDate)}</p>
+                  </div>
+                </div>
+                <span className="font-bold text-red-600">-Rs. {formatCurrency(exp.amount)}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-slate-400">
+            <Receipt className="w-8 h-8 mx-auto mb-2 opacity-50" />
+            <p>No Development expenses recorded</p>
           </div>
         )}
       </div>

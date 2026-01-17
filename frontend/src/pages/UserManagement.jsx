@@ -37,7 +37,17 @@ function Modal({ isOpen, onClose, title, children }) {
   );
 }
 
-const roles = ['Admin', 'FinanceOfficer', 'User'];
+const roles = [
+  'Admin', 
+  'ComputerOperator',
+  'Accountant',
+  'AccountOfficer',
+  'AuditOfficer',
+  'SeniorBudgetOfficer',
+  'DirectorFinance',
+  'FinanceOfficer', 
+  'User'
+];
 
 export default function UserManagement() {
   const { user: currentUser } = useAuth();

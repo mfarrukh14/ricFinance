@@ -354,6 +354,13 @@ class ApiService {
     return this.request('/contingentbill/schedule-of-payments');
   }
 
+  async createScheduleOfPaymentsBatch(billIds) {
+    return this.request('/contingentbill/schedule-of-payments/batch', {
+      method: 'POST',
+      body: JSON.stringify({ billIds }),
+    });
+  }
+
   async getScheduleOfPayment(id) {
     return this.request(`/contingentbill/schedule-of-payments/${id}`);
   }
@@ -401,6 +408,147 @@ class ApiService {
       method: 'POST',
       body: JSON.stringify({ bankDetails, referenceNumber }),
     });
+  }
+
+  // ==================== Workflow API ====================
+
+  // Get bills based on role queue
+  async getMyQueueBills() {
+    return this.request('/workflow/bills/my-queue');
+  }
+
+  async getComputerOperatorBills() {
+    return this.request('/workflow/bills/computer-operator');
+  }
+
+  async getAccountantBills() {
+    return this.request('/workflow/bills/accountant');
+  }
+
+  async getAccountOfficerBills() {
+    return this.request('/workflow/bills/account-officer');
+  }
+
+  async getAuditOfficerBills() {
+    return this.request('/workflow/bills/audit-officer');
+  }
+
+  async getSeniorBudgetOfficerBills() {
+    return this.request('/workflow/bills/senior-budget-officer');
+  }
+
+  async getDirectorFinanceBills() {
+    return this.request('/workflow/bills/director-finance');
+  }
+
+  async getApprovedBills() {
+    return this.request('/workflow/bills/approved');
+  }
+
+  async getRejectedBills() {
+    return this.request('/workflow/bills/rejected');
+  }
+
+  // Workflow actions
+  async saveBillAsDraft(id) {
+    return this.request(`/workflow/bills/${id}/save-draft`, {
+      method: 'POST',
+    });
+  }
+
+  async submitToAccountOfficer(id, remarks) {
+    return this.request(`/workflow/bills/${id}/submit-to-account-officer`, {
+      method: 'POST',
+      body: JSON.stringify({ remarks }),
+    });
+  }
+
+  async accountantApprove(id, remarks) {
+    return this.request(`/workflow/bills/${id}/accountant-approve`, {
+      method: 'POST',
+      body: JSON.stringify({ remarks }),
+    });
+  }
+
+  async accountOfficerApprove(id, remarks) {
+    return this.request(`/workflow/bills/${id}/account-officer-approve`, {
+      method: 'POST',
+      body: JSON.stringify({ remarks }),
+    });
+  }
+
+  async auditOfficerApprove(id, remarks) {
+    return this.request(`/workflow/bills/${id}/audit-officer-approve`, {
+      method: 'POST',
+      body: JSON.stringify({ remarks }),
+    });
+  }
+
+  async seniorBudgetOfficerApprove(id, remarks) {
+    return this.request(`/workflow/bills/${id}/senior-budget-officer-approve`, {
+      method: 'POST',
+      body: JSON.stringify({ remarks }),
+    });
+  }
+
+  async directorFinanceApprove(id, remarks) {
+    return this.request(`/workflow/bills/${id}/director-finance-approve`, {
+      method: 'POST',
+      body: JSON.stringify({ remarks }),
+    });
+  }
+
+  async rejectBill(id, reason) {
+    return this.request(`/workflow/bills/${id}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  async returnBill(id, remarks) {
+    return this.request(`/workflow/bills/${id}/return`, {
+      method: 'POST',
+      body: JSON.stringify({ remarks }),
+    });
+  }
+
+  // PO Search
+  async searchPurchaseOrders(query) {
+    try {
+      const data = await this.request(`/workflow/search-po?query=${encodeURIComponent(query || '')}`);
+      const list = Array.isArray(data) ? data : data?.purchaseOrders || [];
+      if (list.length > 0) return data;
+    } catch {
+      // fallback below
+    }
+
+    const fallbackUrl = `http://localhost:6100/api/purchase-orders/public?search=${encodeURIComponent(
+      query || ''
+    )}`;
+    const response = await fetch(fallbackUrl);
+    if (!response.ok) return [];
+    return response.json();
+  }
+
+  async createBillFromPO(poData) {
+    return this.request('/workflow/bills/create-from-po', {
+      method: 'POST',
+      body: JSON.stringify(poData),
+    });
+  }
+
+  // Bill details and history
+  async getBillDetails(id) {
+    return this.request(`/workflow/bills/${id}/details`);
+  }
+
+  async getBillHistory(id) {
+    return this.request(`/workflow/bills/${id}/history`);
+  }
+
+  // Workflow stats
+  async getWorkflowStats() {
+    return this.request('/workflow/stats');
   }
 
   logout() {

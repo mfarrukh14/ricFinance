@@ -14,18 +14,22 @@ import {
   FileText,
   CreditCard,
   Banknote,
+  Package,
 } from 'lucide-react';
 import React,{ useState } from 'react';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+  { name: 'My Desk', href: '/desk', icon: FileText },
   { name: 'Budget Entries', href: '/budget', icon: FileSpreadsheet },
   { name: 'Reports', href: '/reports', icon: BarChart3 },
   { name: 'Object Codes', href: '/object-codes', icon: BookOpen },
   { name: 'Fiscal Years', href: '/fiscal-years', icon: Calendar },
   { name: 'Contingent Bills', href: '/contingent-bills', icon: FileText },
+  { name: 'Sanction Orders', href: '/sanction-orders', icon: FileText, roleOnly: ['AccountOfficer'] },
+  { name: 'Purchase Orders', href: '/purchase-orders', icon: Package },
   { name: 'Schedule of Payments', href: '/schedule-of-payments', icon: Banknote },
-  { name: 'Asaan Cheques', href: '/asaan-cheques', icon: CreditCard },
+  { name: 'Cheques', href: '/asaan-cheques', icon: CreditCard },
   { name: 'User Management', href: '/users', icon: Users, adminOnly: true },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
@@ -40,9 +44,11 @@ export default function Sidebar() {
     navigate('/login');
   };
 
-  const filteredNav = navigation.filter(
-    (item) => !item.adminOnly || user?.role === 'Admin'
-  );
+  const filteredNav = navigation.filter((item) => {
+    if (item.adminOnly && user?.role !== 'Admin') return false;
+    if (item.roleOnly && !item.roleOnly.includes(user?.role)) return false;
+    return true;
+  });
 
   return (
     <aside

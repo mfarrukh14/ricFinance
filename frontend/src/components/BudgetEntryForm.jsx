@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AlertCircle, Save } from 'lucide-react';
 
 function toNumericString(value) {
@@ -48,6 +48,9 @@ export default function BudgetEntryForm({ entry, objectCodes, fiscalYears, onSav
     aaaReApp: toNumericString(entry?.aaaReApp ?? 0),
     budgetWithheldLapse: toNumericString(entry?.budgetWithheldLapse ?? 0),
     aaaExpenditure: toNumericString(entry?.aaaExpenditure ?? 0),
+    developmentBudgetAllocated: toNumericString(entry?.developmentBudgetAllocated ?? 0),
+    developmentReApp: toNumericString(entry?.developmentReApp ?? 0),
+    developmentExpenditure: toNumericString(entry?.developmentExpenditure ?? 0),
     plaBudgetAllocated: toNumericString(entry?.plaBudgetAllocated ?? 0),
     plaReApp: toNumericString(entry?.plaReApp ?? 0),
     plaExpenditure: toNumericString(entry?.plaExpenditure ?? 0),
@@ -57,6 +60,52 @@ export default function BudgetEntryForm({ entry, objectCodes, fiscalYears, onSav
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const [objectCodeSearch, setObjectCodeSearch] = useState(() => {
+    const oc = objectCodes?.find((o) => o.id === (entry?.objectCodeId ?? undefined));
+    return oc ? `${oc.code} - ${oc.headOfAccount}` : '';
+  });
+
+  const inputRef = useRef(null);
+  const containerRef = useRef(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [highlighted, setHighlighted] = useState(0);
+  const [filtered, setFiltered] = useState(() => objectCodes ?? []);
+
+  useEffect(() => {
+    const q = String(objectCodeSearch || '').trim().toLowerCase();
+    if (!q) {
+      setFiltered(objectCodes ?? []);
+      setHighlighted(0);
+      return;
+    }
+    const f = (objectCodes || []).filter((o) => formatObjectCode(o).toLowerCase().includes(q));
+    setFiltered(f);
+    setHighlighted(0);
+  }, [objectCodeSearch, objectCodes]);
+
+  useEffect(() => {
+    function onDocClick(e) {
+      if (!containerRef.current) return;
+      if (!containerRef.current.contains(e.target)) setShowDropdown(false);
+    }
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, []);
+
+  const selectObjectCode = (oc) => {
+    setObjectCodeSearch(formatObjectCode(oc));
+    handleChange('objectCodeId', oc.id);
+    setShowDropdown(false);
+    inputRef.current?.blur();
+  };
+
+  const formatObjectCode = (oc) => `${oc.code} - ${oc.headOfAccount}`;
+
+  useEffect(() => {
+    const oc = objectCodes?.find((o) => o.id === formData.objectCodeId);
+    setObjectCodeSearch(oc ? formatObjectCode(oc) : '');
+  }, [formData.objectCodeId, objectCodes]);
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -91,6 +140,12 @@ export default function BudgetEntryForm({ entry, objectCodes, fiscalYears, onSav
     setError('');
     setLoading(true);
 
+    if (!formData.objectCodeId) {
+      setError('Please select an Object Code.');
+      setLoading(false);
+      return;
+    }
+
     try {
       const payload = {
         ...formData,
@@ -105,6 +160,9 @@ export default function BudgetEntryForm({ entry, objectCodes, fiscalYears, onSav
         aaaReApp: toNumberOrZero(formData.aaaReApp),
         budgetWithheldLapse: toNumberOrZero(formData.budgetWithheldLapse),
         aaaExpenditure: toNumberOrZero(formData.aaaExpenditure),
+        developmentBudgetAllocated: toNumberOrZero(formData.developmentBudgetAllocated),
+        developmentReApp: toNumberOrZero(formData.developmentReApp),
+        developmentExpenditure: toNumberOrZero(formData.developmentExpenditure),
         plaBudgetAllocated: toNumberOrZero(formData.plaBudgetAllocated),
         plaReApp: toNumberOrZero(formData.plaReApp),
         plaExpenditure: toNumberOrZero(formData.plaExpenditure),
@@ -132,20 +190,57 @@ export default function BudgetEntryForm({ entry, objectCodes, fiscalYears, onSav
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1.5">Object Code</label>
-          <select
-            value={formData.objectCodeId}
-            onChange={(e) => handleChange('objectCodeId', e.target.value === '' ? '' : Number(e.target.value))}
-            className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100"
-            required
-            disabled={!!entry}
-          >
-            <option value="">Select Object Code</option>
-            {objectCodes.map((oc) => (
-              <option key={oc.id} value={oc.id}>
-                {oc.code} - {oc.headOfAccount}
-              </option>
-            ))}
-          </select>
+          <div className="relative" ref={containerRef}>
+            <input
+              type="text"
+              value={objectCodeSearch}
+              onChange={(e) => {
+                const v = e.target.value;
+                setObjectCodeSearch(v);
+                // clear objectCodeId until a concrete selection is made
+                handleChange('objectCodeId', '');
+                setShowDropdown(true);
+              }}
+              onFocus={() => setShowDropdown(true)}
+              onKeyDown={(e) => {
+                if (!showDropdown) return;
+                if (e.key === 'ArrowDown') {
+                  e.preventDefault();
+                  setHighlighted((h) => Math.min(h + 1, filtered.length - 1));
+                } else if (e.key === 'ArrowUp') {
+                  e.preventDefault();
+                  setHighlighted((h) => Math.max(h - 1, 0));
+                } else if (e.key === 'Enter') {
+                  e.preventDefault();
+                  const sel = filtered[highlighted];
+                  if (sel) selectObjectCode(sel);
+                } else if (e.key === 'Escape') {
+                  setShowDropdown(false);
+                }
+              }}
+              className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100"
+              placeholder="Select Object Code"
+              required
+              disabled={!!entry}
+              readOnly={!!entry}
+              ref={inputRef}
+            />
+
+            {showDropdown && filtered.length > 0 && (
+              <ul className="absolute z-50 left-0 right-0 mt-1 max-h-60 overflow-auto bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg">
+                {filtered.map((oc, idx) => (
+                  <li
+                    key={oc.id}
+                    onMouseDown={(ev) => ev.preventDefault()}
+                    onClick={() => selectObjectCode(oc)}
+                    className={`px-4 py-2 cursor-pointer ${idx === highlighted ? 'bg-teal-50 dark:bg-teal-900/40' : ''}`}
+                  >
+                    {formatObjectCode(oc)}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1.5">Fiscal Year</label>
@@ -208,6 +303,33 @@ export default function BudgetEntryForm({ entry, objectCodes, fiscalYears, onSav
             onBlur={handleNumberBlur('budgetWithheldLapse')}
           />
           <BudgetInputField label="AAA Expenditure" value={formData.aaaExpenditure} onChange={handleNumberChange('aaaExpenditure')} onBlur={handleNumberBlur('aaaExpenditure')} />
+        </div>
+      </div>
+
+      <div className="bg-emerald-50 dark:bg-emerald-950/25 rounded-xl p-4">
+        <h4 className="text-sm font-semibold text-emerald-800 dark:text-emerald-200 mb-4 flex items-center gap-2">
+          <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+          Development Budget (AAA)
+        </h4>
+        <div className="grid grid-cols-3 gap-4">
+          <BudgetInputField
+            label="Budget Allocated"
+            value={formData.developmentBudgetAllocated}
+            onChange={handleNumberChange('developmentBudgetAllocated')}
+            onBlur={handleNumberBlur('developmentBudgetAllocated')}
+          />
+          <BudgetInputField
+            label="Re-appropriation"
+            value={formData.developmentReApp}
+            onChange={handleNumberChange('developmentReApp')}
+            onBlur={handleNumberBlur('developmentReApp')}
+          />
+          <BudgetInputField
+            label="Development Expenditure"
+            value={formData.developmentExpenditure}
+            onChange={handleNumberChange('developmentExpenditure')}
+            onBlur={handleNumberBlur('developmentExpenditure')}
+          />
         </div>
       </div>
 

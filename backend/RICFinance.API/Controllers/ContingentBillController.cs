@@ -188,8 +188,14 @@ public class ContingentBillController : ControllerBase
         if (bill == null)
             return NotFound();
 
-        if (!string.Equals(bill.Status, "Pending", StringComparison.OrdinalIgnoreCase))
-            return BadRequest(new { message = "Only Pending contingent bills can be edited." });
+        var isDraft = string.Equals(bill.Status, "Draft", StringComparison.OrdinalIgnoreCase);
+        var isPendingAccountOfficer = string.Equals(bill.Status, "PendingAccountOfficer", StringComparison.OrdinalIgnoreCase);
+
+        if (!isDraft && !isPendingAccountOfficer)
+            return BadRequest(new { message = "Only Draft or Pending Account Officer bills can be edited." });
+
+        if (isPendingAccountOfficer && !User.IsInRole("AccountOfficer"))
+            return Forbid();
 
         if (dto.BillDate.HasValue)
             bill.BillDate = dto.BillDate.Value;
@@ -304,26 +310,7 @@ public class ContingentBillController : ControllerBase
                 }
             }
 
-            // Create pending Schedule of Payment
-            var scheduleOfPayment = new ScheduleOfPayment
-            {
-                ContingentBillId = bill.Id,
-                SheetNumber = 1,
-                SerialNumber = 1,
-                BillMonth = DateTime.Now.ToString("MMMM yyyy"),
-                PaymentDate = DateTime.UtcNow,
-                Particulars = $"{bill.SupplierName} - {bill.TenderTitle}",
-                HeadCode = bill.HeadCode,
-                GrossAmount = bill.GrandTotal,
-                StampDuty = bill.StampDuty,
-                IncomeTax = bill.IncomeTax,
-                GST = bill.GST,
-                NetAmount = bill.NetPayment,
-                Status = "Pending",
-                CreatedById = GetCurrentUserId(),
-                CreatedAt = DateTime.UtcNow
-            };
-            _context.ScheduleOfPayments.Add(scheduleOfPayment);
+            // Schedule of Payment is created manually by Account Officer via batch selection.
         }
 
         bill.UpdatedAt = DateTime.UtcNow;
@@ -348,6 +335,60 @@ public class ContingentBillController : ControllerBase
         await _context.SaveChangesAsync();
 
         return Ok(bill);
+    }
+
+    [HttpPost("schedule-of-payments/batch")]
+    [Authorize]
+    public async Task<ActionResult<ScheduleOfPayment>> CreateScheduleOfPaymentBatch([FromBody] ScheduleBatchDto dto)
+    {
+        if (dto.BillIds == null || dto.BillIds.Count == 0)
+            return BadRequest(new { message = "No bills selected." });
+
+        var bills = await _context.ContingentBills
+            .Include(b => b.ObjectCode)
+            .Where(b => dto.BillIds.Contains(b.Id))
+            .ToListAsync();
+
+        if (bills.Count != dto.BillIds.Count)
+            return BadRequest(new { message = "One or more bills not found." });
+
+        if (bills.Any(b => b.Status != "Approved"))
+            return BadRequest(new { message = "All bills must be Approved before scheduling payments." });
+
+        var firstBill = bills.First();
+        var totalGross = bills.Sum(b => b.GrandTotal);
+        var totalStamp = bills.Sum(b => b.StampDuty);
+        var totalIncomeTax = bills.Sum(b => b.IncomeTax);
+        var totalGst = bills.Sum(b => b.GST);
+        var totalNet = bills.Sum(b => b.NetPayment);
+
+        var billNumbers = string.Join(", ", bills.Select(b => b.BillNumber));
+
+        var createdById = GetCurrentUserId();
+
+        var scheduleOfPayment = new ScheduleOfPayment
+        {
+            ContingentBillId = firstBill.Id,
+            SheetNumber = 1,
+            SerialNumber = 1,
+            BillMonth = DateTime.Now.ToString("MMMM yyyy"),
+            PaymentDate = DateTime.UtcNow,
+            Particulars = $"Batch Bills: {billNumbers}",
+            HeadCode = firstBill.HeadCode,
+            GrossAmount = totalGross,
+            StampDuty = totalStamp,
+            IncomeTax = totalIncomeTax,
+            GST = totalGst,
+            NetAmount = totalNet,
+            Status = "Pending",
+            CreatedById = createdById > 0 ? createdById : null,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.ScheduleOfPayments.Add(scheduleOfPayment);
+        await _context.SaveChangesAsync();
+
+        return Ok(scheduleOfPayment);
     }
 
     // ==================== Schedule of Payments ====================
@@ -702,6 +743,11 @@ public class ContingentBillUpdateDto
 public class ApprovalDto
 {
     public string? ApprovalType { get; set; }
+}
+
+public class ScheduleBatchDto
+{
+    public List<int> BillIds { get; set; } = new();
 }
 
 public class RejectDto

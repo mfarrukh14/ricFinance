@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import {
   FileText,
@@ -15,6 +16,7 @@ import {
 } from 'lucide-react';
 
 export default function ContingentBills() {
+  const { user } = useAuth();
   const [bills, setBills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -25,6 +27,7 @@ export default function ContingentBills() {
   const [fiscalYears, setFiscalYears] = useState([]);
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedBillIds, setSelectedBillIds] = useState([]);
 
   const [editData, setEditData] = useState(null);
   const [editSaving, setEditSaving] = useState(false);
@@ -44,9 +47,65 @@ export default function ContingentBills() {
     gst: 0,
     incomeTax: 0,
     laborDuty: 0,
+    lateDeliveryCharges: 0,
+    shelfLife: '',
+    riskPurchase: 0,
+    otherDeductionName: '',
+    otherDeductionAmount: 0,
     netPayment: 0,
     amountInWords: '',
   });
+
+  // Helper to format object code display
+  const formatOC = (c) => `${c.code} - ${c.headOfAccount}`;
+
+  // Create-modal searchable dropdown state
+  const createOcInputRef = useRef(null);
+  const createOcContainerRef = useRef(null);
+  const [createOcSearch, setCreateOcSearch] = useState('');
+  const [createShowDropdown, setCreateShowDropdown] = useState(false);
+  const [createFiltered, setCreateFiltered] = useState(objectCodes ?? []);
+  const [createHighlighted, setCreateHighlighted] = useState(0);
+
+  // Edit-modal searchable dropdown state
+  const editOcInputRef = useRef(null);
+  const editOcContainerRef = useRef(null);
+  const [editOcSearch, setEditOcSearch] = useState('');
+  const [editShowDropdown, setEditShowDropdown] = useState(false);
+  const [editFiltered, setEditFiltered] = useState(objectCodes ?? []);
+  const [editHighlighted, setEditHighlighted] = useState(0);
+
+  useEffect(() => {
+    const q = String(createOcSearch || '').trim().toLowerCase();
+    if (!q) {
+      setCreateFiltered(objectCodes ?? []);
+      setCreateHighlighted(0);
+      return;
+    }
+    setCreateFiltered((objectCodes || []).filter((o) => formatOC(o).toLowerCase().includes(q)));
+    setCreateHighlighted(0);
+  }, [createOcSearch, objectCodes]);
+
+  useEffect(() => {
+    const q = String(editOcSearch || '').trim().toLowerCase();
+    if (!q) {
+      setEditFiltered(objectCodes ?? []);
+      setEditHighlighted(0);
+      return;
+    }
+    setEditFiltered((objectCodes || []).filter((o) => formatOC(o).toLowerCase().includes(q)));
+    setEditHighlighted(0);
+  }, [editOcSearch, objectCodes]);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    function onDocClick(e) {
+      if (createOcContainerRef.current && !createOcContainerRef.current.contains(e.target)) setCreateShowDropdown(false);
+      if (editOcContainerRef.current && !editOcContainerRef.current.contains(e.target)) setEditShowDropdown(false);
+    }
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -61,12 +120,39 @@ export default function ContingentBills() {
         api.getFiscalYears(),
       ]);
       setBills(billsData);
+      setSelectedBillIds([]);
       setObjectCodes(codesData);
       setFiscalYears(yearsData);
     } catch (err) {
-      setError(err.message);
+      setError(err?.message || 'An error occurred while fetching data.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const toggleBillSelection = (billId) => {
+    setSelectedBillIds((prev) =>
+      prev.includes(billId) ? prev.filter((id) => id !== billId) : [...prev, billId]
+    );
+  };
+
+  const handleSendToSchedule = async () => {
+    if (selectedBillIds.length === 0) return;
+    const approvedIds = selectedBillIds.filter((id) => {
+      const bill = bills.find((b) => b.id === id);
+      return String(bill?.status || '').toLowerCase() === 'approved';
+    });
+    if (approvedIds.length === 0) {
+      setError('Please select approved bills only.');
+      return;
+    }
+    try {
+      await api.createScheduleOfPaymentsBatch(approvedIds);
+      setSelectedBillIds([]);
+      fetchData();
+      alert('Schedule of payment created for selected bills.');
+    } catch (err) {
+      setError(err?.message || 'Failed to create schedule of payments.');
     }
   };
 
@@ -89,7 +175,7 @@ export default function ContingentBills() {
       resetForm();
       fetchData();
     } catch (err) {
-      setError(err.message);
+      setError(err?.message || 'An error occurred while creating the bill.');
     }
   };
 
@@ -102,7 +188,7 @@ export default function ContingentBills() {
         setSelectedBill(updated);
       }
     } catch (err) {
-      setError(err.message);
+      setError(err?.message || 'An error occurred while approving the bill.');
     }
   };
 
@@ -112,7 +198,7 @@ export default function ContingentBills() {
       fetchData();
       setShowModal(false);
     } catch (err) {
-      setError(err.message);
+      setError(err?.message || 'An error occurred while rejecting the bill.');
     }
   };
 
@@ -158,6 +244,11 @@ export default function ContingentBills() {
       gst: 0,
       incomeTax: 0,
       laborDuty: 0,
+      lateDeliveryCharges: 0,
+      shelfLife: '',
+      riskPurchase: 0,
+      otherDeductionName: '',
+      otherDeductionAmount: 0,
       netPayment: 0,
       amountInWords: '',
     });
@@ -168,8 +259,11 @@ export default function ContingentBills() {
     const sd = parseFloat(formData.stampDuty) || 0;
     const gst = parseFloat(formData.gst) || 0;
     const it = parseFloat(formData.incomeTax) || 0;
-    const ld = parseFloat(formData.laborDuty) || 0;
-    return gross - sd - gst - it - ld;
+    const pst = parseFloat(formData.laborDuty) || 0;
+    const ldc = parseFloat(formData.lateDeliveryCharges) || 0;
+    const rp = parseFloat(formData.riskPurchase) || 0;
+    const od = parseFloat(formData.otherDeductionAmount) || 0;
+    return gross - sd - gst - it - pst - ldc - rp - od;
   };
 
   const getStatusColor = (status) => {
@@ -257,13 +351,24 @@ export default function ContingentBills() {
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Contingent Bills</h1>
           <p className="text-slate-600 dark:text-slate-400">Manage contingent bills from eProcurement</p>
         </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg transition-colors"
-        >
-          <Plus className="w-5 h-5" />
-          Create Bill
-        </button>
+        <div className="flex items-center gap-3">
+          {user?.role === 'AccountOfficer' && (
+            <button
+              onClick={handleSendToSchedule}
+              disabled={selectedBillIds.length === 0}
+              className="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-60 text-white rounded-lg transition-colors"
+            >
+              Send to Schedule of Payments
+            </button>
+          )}
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg transition-colors"
+          >
+            <Plus className="w-5 h-5" />
+            Create Bill
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -302,6 +407,11 @@ export default function ContingentBills() {
           <table className="w-full">
             <thead className="bg-slate-50 dark:bg-slate-700/50">
               <tr>
+                {user?.role === 'AccountOfficer' && (
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    Select
+                  </th>
+                )}
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                   Bill Number
                 </th>
@@ -328,13 +438,24 @@ export default function ContingentBills() {
             <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
               {filteredBills.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
+                  <td colSpan={user?.role === 'AccountOfficer' ? 8 : 7} className="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
                     No contingent bills found
                   </td>
                 </tr>
               ) : (
                 filteredBills.map((bill) => (
                   <tr key={bill.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                    {user?.role === 'AccountOfficer' && (
+                      <td className="px-6 py-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedBillIds.includes(bill.id)}
+                          onChange={() => toggleBillSelection(bill.id)}
+                          disabled={String(bill.status || '').toLowerCase() !== 'approved'}
+                          className="h-4 w-4 text-indigo-600 border-slate-300 rounded disabled:opacity-50"
+                        />
+                      </td>
+                    )}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <FileText className="w-5 h-5 text-slate-400" />
@@ -491,52 +612,117 @@ export default function ContingentBills() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Object Code</label>
-                      <select
-                        value={editData.objectCodeId ?? ''}
-                        onChange={async (e) => {
-                          const nextId = e.target.value ? Number(e.target.value) : null;
-                          const code = objectCodes.find((c) => c.id === nextId);
-                          const next = {
-                            ...editData,
-                            objectCodeId: nextId,
-                            headCode: code?.code || editData.headCode || '',
-                            headTitle: code?.headOfAccount || editData.headTitle || '',
-                          };
-                          setEditData(next);
+                        <div className="relative" ref={editOcContainerRef}>
+                          <input
+                            type="text"
+                            value={editOcSearch || (editData.objectCodeId ? formatOC(objectCodes.find((c) => c.id === editData.objectCodeId) || {}) : '')}
+                            onChange={(e) => {
+                              setEditOcSearch(e.target.value);
+                              setEditShowDropdown(true);
+                            }}
+                            onFocus={() => setEditShowDropdown(true)}
+                            onKeyDown={async (e) => {
+                              if (!editShowDropdown) return;
+                              if (e.key === 'ArrowDown') {
+                                e.preventDefault();
+                                setEditHighlighted((h) => Math.min(h + 1, (editFiltered || []).length - 1));
+                              } else if (e.key === 'ArrowUp') {
+                                e.preventDefault();
+                                setEditHighlighted((h) => Math.max(h - 1, 0));
+                              } else if (e.key === 'Enter') {
+                                e.preventDefault();
+                                const sel = editFiltered[editHighlighted];
+                                if (sel) {
+                                  // select and call update like original
+                                  const nextId = sel.id;
+                                  const code = sel;
+                                  const next = {
+                                    ...editData,
+                                    objectCodeId: nextId,
+                                    headCode: code?.code || editData.headCode || '',
+                                    headTitle: code?.headOfAccount || editData.headTitle || '',
+                                  };
+                                  setEditData(next);
+                                  setEditShowDropdown(false);
+                                  try {
+                                    const payload = {
+                                      objectCodeId: nextId,
+                                      headCode: next.headCode,
+                                      headTitle: next.headTitle,
+                                    };
+                                    if (next.fiscalYearId) payload.fiscalYearId = Number(next.fiscalYearId);
+                                    const updated = await handleUpdate(selectedBill.id, payload);
+                                    setEditData((prev) => ({
+                                      ...prev,
+                                      objectCodeId: updated.objectCodeId,
+                                      fiscalYearId: updated.fiscalYearId,
+                                      headCode: updated.headCode,
+                                      headTitle: updated.headTitle,
+                                      budgetAllotment: updated.budgetAllotment,
+                                      totalPreviousBills: updated.totalPreviousBills,
+                                      availableBalance: updated.availableBalance,
+                                      totalUptoDate: updated.totalUptoDate,
+                                    }));
+                                  } catch {
+                                    // error already shown
+                                  }
+                                }
+                              } else if (e.key === 'Escape') {
+                                setEditShowDropdown(false);
+                              }
+                            }}
+                            className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                            placeholder="Select Object Code"
+                            ref={editOcInputRef}
+                          />
 
-                          try {
-                            const payload = {
-                              objectCodeId: nextId,
-                              headCode: next.headCode,
-                              headTitle: next.headTitle,
-                            };
-                            if (next.fiscalYearId) payload.fiscalYearId = Number(next.fiscalYearId);
-
-                            const updated = await handleUpdate(selectedBill.id, payload);
-                            setEditData((prev) => ({
-                              ...prev,
-                              objectCodeId: updated.objectCodeId,
-                              fiscalYearId: updated.fiscalYearId,
-                              headCode: updated.headCode,
-                              headTitle: updated.headTitle,
-                              budgetAllotment: updated.budgetAllotment,
-                              totalPreviousBills: updated.totalPreviousBills,
-                              availableBalance: updated.availableBalance,
-                              totalUptoDate: updated.totalUptoDate,
-                            }));
-                          } catch (err) {
-                            // error already shown
-                          }
-                        }}
-                        className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
-                      >
-                        <option value="">Select Object Code</option>
-                        {objectCodes.map((code) => (
-                          <option key={code.id} value={code.id}>
-                            {code.code} - {code.headOfAccount}
-                          </option>
-                        ))}
-                      </select>
+                          {editShowDropdown && (editFiltered || []).length > 0 && (
+                            <ul className="absolute z-50 left-0 right-0 mt-1 max-h-56 overflow-auto bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg shadow">
+                              {editFiltered.map((code, idx) => (
+                                <li
+                                  key={code.id}
+                                  onMouseDown={(ev) => ev.preventDefault()}
+                                  onClick={async () => {
+                                    const nextId = code.id;
+                                    const next = {
+                                      ...editData,
+                                      objectCodeId: nextId,
+                                      headCode: code?.code || editData.headCode || '',
+                                      headTitle: code?.headOfAccount || editData.headTitle || '',
+                                    };
+                                    setEditData(next);
+                                    setEditShowDropdown(false);
+                                    try {
+                                      const payload = {
+                                        objectCodeId: nextId,
+                                        headCode: next.headCode,
+                                        headTitle: next.headTitle,
+                                      };
+                                      if (next.fiscalYearId) payload.fiscalYearId = Number(next.fiscalYearId);
+                                      const updated = await handleUpdate(selectedBill.id, payload);
+                                      setEditData((prev) => ({
+                                        ...prev,
+                                        objectCodeId: updated.objectCodeId,
+                                        fiscalYearId: updated.fiscalYearId,
+                                        headCode: updated.headCode,
+                                        headTitle: updated.headTitle,
+                                        budgetAllotment: updated.budgetAllotment,
+                                        totalPreviousBills: updated.totalPreviousBills,
+                                        availableBalance: updated.availableBalance,
+                                        totalUptoDate: updated.totalUptoDate,
+                                      }));
+                                    } catch {
+                                      // error already shown
+                                    }
+                                  }}
+                                  className={`px-3 py-2 cursor-pointer ${idx === editHighlighted ? 'bg-teal-50 dark:bg-teal-900/20' : ''}`}
+                                >
+                                  {formatOC(code)}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Fiscal Year</label>
@@ -564,7 +750,7 @@ export default function ContingentBills() {
                               availableBalance: updated.availableBalance,
                               totalUptoDate: updated.totalUptoDate,
                             }));
-                          } catch (err) {
+                          } catch {
                             // error already shown
                           }
                         }}
@@ -646,11 +832,62 @@ export default function ContingentBills() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Labor Duty</label>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">PST</label>
                       <input
                         type="number"
                         value={editData.laborDuty ?? 0}
                         onChange={(e) => setEditData({ ...editData, laborDuty: parseFloat(e.target.value) || 0 })}
+                        className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Late Delivery Charges</label>
+                      <input
+                        type="number"
+                        value={editData.lateDeliveryCharges ?? 0}
+                        onChange={(e) => setEditData({ ...editData, lateDeliveryCharges: parseFloat(e.target.value) || 0 })}
+                        className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Risk Purchase</label>
+                      <input
+                        type="number"
+                        value={editData.riskPurchase ?? 0}
+                        onChange={(e) => setEditData({ ...editData, riskPurchase: parseFloat(e.target.value) || 0 })}
+                        className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Shelf Life</label>
+                      <input
+                        type="text"
+                        value={editData.shelfLife ?? ''}
+                        onChange={(e) => setEditData({ ...editData, shelfLife: e.target.value })}
+                        className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Other Deduction Name</label>
+                      <input
+                        type="text"
+                        value={editData.otherDeductionName ?? ''}
+                        onChange={(e) => setEditData({ ...editData, otherDeductionName: e.target.value })}
+                        className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Other Deduction Amount</label>
+                      <input
+                        type="number"
+                        value={editData.otherDeductionAmount ?? 0}
+                        onChange={(e) => setEditData({ ...editData, otherDeductionAmount: parseFloat(e.target.value) || 0 })}
                         className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
                       />
                     </div>
@@ -709,6 +946,11 @@ export default function ContingentBills() {
                             gst: Number(editData.gst || 0),
                             incomeTax: Number(editData.incomeTax || 0),
                             laborDuty: Number(editData.laborDuty || 0),
+                            lateDeliveryCharges: Number(editData.lateDeliveryCharges || 0),
+                            shelfLife: editData.shelfLife || null,
+                            riskPurchase: Number(editData.riskPurchase || 0),
+                            otherDeductionName: editData.otherDeductionName || null,
+                            otherDeductionAmount: Number(editData.otherDeductionAmount || 0),
                             amountInWords: editData.amountInWords || null,
                           };
 
@@ -754,9 +996,39 @@ export default function ContingentBills() {
                   </div>
                 </div>
                 <div className="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg text-center">
-                  <div className="text-xs text-slate-500 dark:text-slate-400">Labor Duty</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">PST</div>
                   <div className="font-medium text-slate-900 dark:text-white">
                     Rs. {selectedBill.laborDuty?.toLocaleString()}
+                  </div>
+                </div>
+                <div className="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg text-center">
+                  <div className="text-xs text-slate-500 dark:text-slate-400">Late Delivery Charges</div>
+                  <div className="font-medium text-slate-900 dark:text-white">
+                    Rs. {selectedBill.lateDeliveryCharges?.toLocaleString()}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div className="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg text-center">
+                  <div className="text-xs text-slate-500 dark:text-slate-400">Risk Purchase</div>
+                  <div className="font-medium text-slate-900 dark:text-white">
+                    Rs. {selectedBill.riskPurchase?.toLocaleString()}
+                  </div>
+                </div>
+                <div className="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg text-center">
+                  <div className="text-xs text-slate-500 dark:text-slate-400">Other Deduction</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                    {selectedBill.otherDeductionName || '-'}
+                  </div>
+                  <div className="font-medium text-slate-900 dark:text-white">
+                    Rs. {selectedBill.otherDeductionAmount?.toLocaleString()}
+                  </div>
+                </div>
+                <div className="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg text-center">
+                  <div className="text-xs text-slate-500 dark:text-slate-400">Shelf Life</div>
+                  <div className="font-medium text-slate-900 dark:text-white">
+                    {selectedBill.shelfLife || '-'}
                   </div>
                 </div>
                 <div className="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg text-center">
@@ -910,27 +1182,71 @@ export default function ContingentBills() {
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                     Object Code (Budget Head)
                   </label>
-                  <select
-                    value={formData.objectCodeId}
-                    onChange={(e) => {
-                      const nextId = e.target.value ? Number(e.target.value) : null;
-                      const code = objectCodes.find((c) => c.id === nextId);
-                      setFormData({
-                        ...formData,
-                        objectCodeId: nextId,
-                        headCode: code?.code || '',
-                        headTitle: code?.headOfAccount || '',
-                      });
-                    }}
-                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
-                  >
-                    <option value="">Select Object Code</option>
-                    {objectCodes.map((code) => (
-                      <option key={code.id} value={code.id}>
-                        {code.code} - {code.headOfAccount}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative" ref={createOcContainerRef}>
+                    <input
+                      type="text"
+                      value={createOcSearch || (formData.objectCodeId ? formatOC(objectCodes.find((c) => c.id === formData.objectCodeId) || {}) : '')}
+                      onChange={(e) => {
+                        setCreateOcSearch(e.target.value);
+                        setCreateShowDropdown(true);
+                        // clear id until selection
+                        setFormData((prev) => ({ ...prev, objectCodeId: null }));
+                      }}
+                      onFocus={() => setCreateShowDropdown(true)}
+                      onKeyDown={(e) => {
+                        if (!createShowDropdown) return;
+                        if (e.key === 'ArrowDown') {
+                          e.preventDefault();
+                          setCreateHighlighted((h) => Math.min(h + 1, (createFiltered || []).length - 1));
+                        } else if (e.key === 'ArrowUp') {
+                          e.preventDefault();
+                          setCreateHighlighted((h) => Math.max(h - 1, 0));
+                        } else if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const sel = createFiltered[createHighlighted];
+                          if (sel) {
+                            setFormData((prev) => ({
+                              ...prev,
+                              objectCodeId: sel.id,
+                              headCode: sel.code || prev.headCode,
+                              headTitle: sel.headOfAccount || prev.headTitle,
+                            }));
+                            setCreateOcSearch(formatOC(sel));
+                            setCreateShowDropdown(false);
+                          }
+                        } else if (e.key === 'Escape') {
+                          setCreateShowDropdown(false);
+                        }
+                      }}
+                      className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                      placeholder="Select Object Code"
+                      ref={createOcInputRef}
+                    />
+
+                    {createShowDropdown && (createFiltered || []).length > 0 && (
+                      <ul className="absolute z-50 left-0 right-0 mt-1 max-h-56 overflow-auto bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg shadow">
+                        {createFiltered.map((code, idx) => (
+                          <li
+                            key={code.id}
+                            onMouseDown={(ev) => ev.preventDefault()}
+                            onClick={() => {
+                              setFormData((prev) => ({
+                                ...prev,
+                                objectCodeId: code.id,
+                                headCode: code.code || prev.headCode,
+                                headTitle: code.headOfAccount || prev.headTitle,
+                              }));
+                              setCreateOcSearch(formatOC(code));
+                              setCreateShowDropdown(false);
+                            }}
+                            className={`px-3 py-2 cursor-pointer ${idx === createHighlighted ? 'bg-teal-50 dark:bg-teal-900/20' : ''}`}
+                          >
+                            {formatOC(code)}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
@@ -1037,12 +1353,73 @@ export default function ContingentBills() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                    Labor Duty
+                    PST
                   </label>
                   <input
                     type="number"
                     value={formData.laborDuty}
                     onChange={(e) => setFormData({ ...formData, laborDuty: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    Late Delivery Charges
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.lateDeliveryCharges}
+                    onChange={(e) => setFormData({ ...formData, lateDeliveryCharges: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    Risk Purchase
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.riskPurchase}
+                    onChange={(e) => setFormData({ ...formData, riskPurchase: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    Shelf Life
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.shelfLife}
+                    onChange={(e) => setFormData({ ...formData, shelfLife: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    Other Deduction Name
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.otherDeductionName}
+                    onChange={(e) => setFormData({ ...formData, otherDeductionName: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    Other Deduction Amount
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.otherDeductionAmount}
+                    onChange={(e) => setFormData({ ...formData, otherDeductionAmount: parseFloat(e.target.value) || 0 })}
                     className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
                   />
                 </div>

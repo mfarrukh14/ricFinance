@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RICFinance.API.Data;
 
@@ -11,9 +12,11 @@ using RICFinance.API.Data;
 namespace RICFinance.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260116220234_AddSanctionOrderFields")]
+    partial class AddSanctionOrderFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -226,21 +229,6 @@ namespace RICFinance.API.Migrations
                     b.Property<int?>("CreatedById")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("DevelopmentBudgetAllocated")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("DevelopmentExpenditure")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("DevelopmentReApp")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("DevelopmentRemainingBudget")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("DevelopmentTotalBudget")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<decimal>("ExcessReallocation")
                         .HasColumnType("decimal(18,2)");
 
@@ -392,6 +380,11 @@ namespace RICFinance.API.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("BillType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<decimal>("BudgetAllotment")
                         .HasColumnType("decimal(18,2)");
 
@@ -459,6 +452,9 @@ namespace RICFinance.API.Migrations
                     b.Property<decimal>("LaborDuty")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<decimal>("LateDeliveryCharges")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("LetterOfAwardNumber")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -475,15 +471,28 @@ namespace RICFinance.API.Migrations
                     b.Property<int?>("ObjectCodeId")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("OtherDeductionAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("OtherDeductionName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<string>("PONumber")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("PST")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime?>("PreAuditDate")
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("PreAuditPassed")
                         .HasColumnType("bit");
+
+                    b.Property<decimal>("RiskPurchase")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("SONumber")
                         .HasMaxLength(100)
@@ -501,6 +510,10 @@ namespace RICFinance.API.Migrations
                     b.Property<string>("SeniorBudgetOfficerRemarks")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("ShelfLife")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<decimal>("StampDuty")
                         .HasColumnType("decimal(18,2)");

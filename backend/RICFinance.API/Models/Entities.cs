@@ -26,7 +26,7 @@ public class User
     
     [Required]
     [StringLength(50)]
-    public string Role { get; set; } = "User"; // Admin, FinanceOfficer, User
+    public string Role { get; set; } = "User"; // Admin, ComputerOperator, Accountant, AccountOfficer, AuditOfficer, SeniorBudgetOfficer, DirectorFinance
     
     [StringLength(50)]
     public string? Department { get; set; }
@@ -164,6 +164,22 @@ public class BudgetEntry
     
     [Column(TypeName = "decimal(18,2)")]
     public decimal AAARemainingBudget { get; set; } = 0;
+
+    // Development Budget (AAA)
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal DevelopmentBudgetAllocated { get; set; } = 0;
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal DevelopmentReApp { get; set; } = 0;
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal DevelopmentTotalBudget { get; set; } = 0;
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal DevelopmentExpenditure { get; set; } = 0;
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal DevelopmentRemainingBudget { get; set; } = 0;
     
     // PLA Budget
     [Column(TypeName = "decimal(18,2)")]
@@ -228,6 +244,9 @@ public class BudgetEntry
         SumOfReleased = FirstReleased + SecondReleased + ThirdReleased + FourthReleased;
         TotalAAABudget = SumOfReleased + AAAReApp;
         AAARemainingBudget = TotalAAABudget - BudgetWithheldLapse - AAAExpenditure;
+
+        DevelopmentTotalBudget = DevelopmentBudgetAllocated + DevelopmentReApp;
+        DevelopmentRemainingBudget = DevelopmentTotalBudget - DevelopmentExpenditure;
         
         PLATotalBudget = PLABudgetAllocated + PLAReApp;
         PLARemainingBudget = PLATotalBudget - PLAExpenditure;
@@ -235,9 +254,9 @@ public class BudgetEntry
         UHITotalBudget = UHIBudgetAllocated + UHIReApp;
         UHIRemainingBudget = UHITotalBudget - UHIExpenditure;
         
-        ConsolidatedTotalBudget = TotalAAABudget + PLATotalBudget + UHITotalBudget;
-        ConsolidatedTotalExpenditure = AAAExpenditure + PLAExpenditure + UHIExpenditure;
-        ConsolidatedRemainingBudget = AAARemainingBudget + PLARemainingBudget + UHIRemainingBudget;
+        ConsolidatedTotalBudget = TotalAAABudget + DevelopmentTotalBudget + PLATotalBudget + UHITotalBudget;
+        ConsolidatedTotalExpenditure = AAAExpenditure + DevelopmentExpenditure + PLAExpenditure + UHIExpenditure;
+        ConsolidatedRemainingBudget = AAARemainingBudget + DevelopmentRemainingBudget + PLARemainingBudget + UHIRemainingBudget;
     }
 }
 
@@ -261,7 +280,7 @@ public class ExpenseHistory
     
     [Required]
     [StringLength(10)]
-    public string BudgetType { get; set; } = "AAA"; // AAA, PLA, UHI
+    public string BudgetType { get; set; } = "AAA"; // AAA, DEV, PLA, UHI
     
     [StringLength(500)]
     public string? Description { get; set; }
@@ -387,12 +406,64 @@ public class ContingentBill
     [StringLength(500)]
     public string? AmountInWords { get; set; }
     
-    // Status: Pending, Approved, Rejected
+    // Status: Draft, PendingAccountant, PendingAccountOfficer, PendingAuditOfficer, PendingSeniorBudgetOfficer, PendingDirectorFinance, Approved, Rejected
     [Required]
-    [StringLength(20)]
-    public string Status { get; set; } = "Pending";
+    [StringLength(50)]
+    public string Status { get; set; } = "Draft";
     
-    // Approval signatures
+    // Workflow tracking
+    [StringLength(50)]
+    public string WorkflowStatus { get; set; } = "Draft"; // Draft, InProgress, Completed, Rejected
+    
+    public bool IsDraft { get; set; } = true;
+    
+    // PO/SO Reference (for searchable link to eProcurement)
+    [StringLength(100)]
+    public string? PONumber { get; set; }
+    
+    [StringLength(100)]
+    public string? SONumber { get; set; }
+    
+    // Workflow step tracking - Computer Operator (Step 1)
+    public int? CreatedByComputerOperatorId { get; set; }
+    public DateTime? ComputerOperatorSubmittedAt { get; set; }
+    
+    // Accountant (Step 2)
+    public int? AccountantId { get; set; }
+    public bool AccountantApproved { get; set; } = false;
+    public DateTime? AccountantApprovalDate { get; set; }
+    [StringLength(500)]
+    public string? AccountantRemarks { get; set; }
+    
+    // Account Officer (Step 3)
+    public int? AccountOfficerId { get; set; }
+    public bool AccountOfficerApproved { get; set; } = false;
+    public DateTime? AccountOfficerApprovalDate { get; set; }
+    [StringLength(500)]
+    public string? AccountOfficerRemarks { get; set; }
+    
+    // Audit Officer (Step 4)
+    public int? AuditOfficerId { get; set; }
+    public bool AuditOfficerApproved { get; set; } = false;
+    public DateTime? AuditOfficerApprovalDate { get; set; }
+    [StringLength(500)]
+    public string? AuditOfficerRemarks { get; set; }
+    
+    // Senior Budget & Account Officer (Step 5)
+    public int? SeniorBudgetOfficerId { get; set; }
+    public bool SeniorBudgetOfficerApproved { get; set; } = false;
+    public DateTime? SeniorBudgetOfficerApprovalDate { get; set; }
+    [StringLength(500)]
+    public string? SeniorBudgetOfficerRemarks { get; set; }
+    
+    // Director Finance (Step 6 - Final)
+    public int? DirectorFinanceId { get; set; }
+    public bool DirectorFinanceApproved { get; set; } = false;
+    public DateTime? DirectorFinanceApprovalDate { get; set; }
+    [StringLength(500)]
+    public string? DirectorFinanceRemarks { get; set; }
+    
+    // Legacy approval signatures (kept for backward compatibility)
     public bool MedicalSuperintendentApproved { get; set; } = false;
     public DateTime? MedicalSuperintendentApprovalDate { get; set; }
     

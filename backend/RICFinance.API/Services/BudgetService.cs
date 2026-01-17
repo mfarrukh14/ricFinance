@@ -625,6 +625,9 @@ public class BudgetService : IBudgetService
             AAAReApp = dto.AAAReApp,
             BudgetWithheldLapse = dto.BudgetWithheldLapse,
             AAAExpenditure = dto.AAAExpenditure,
+            DevelopmentBudgetAllocated = dto.DevelopmentBudgetAllocated,
+            DevelopmentReApp = dto.DevelopmentReApp,
+            DevelopmentExpenditure = dto.DevelopmentExpenditure,
             PLABudgetAllocated = dto.PLABudgetAllocated,
             PLAReApp = dto.PLAReApp,
             PLAExpenditure = dto.PLAExpenditure,
@@ -666,6 +669,9 @@ public class BudgetService : IBudgetService
         if (dto.AAAReApp.HasValue) entry.AAAReApp = dto.AAAReApp.Value;
         if (dto.BudgetWithheldLapse.HasValue) entry.BudgetWithheldLapse = dto.BudgetWithheldLapse.Value;
         if (dto.AAAExpenditure.HasValue) entry.AAAExpenditure = dto.AAAExpenditure.Value;
+        if (dto.DevelopmentBudgetAllocated.HasValue) entry.DevelopmentBudgetAllocated = dto.DevelopmentBudgetAllocated.Value;
+        if (dto.DevelopmentReApp.HasValue) entry.DevelopmentReApp = dto.DevelopmentReApp.Value;
+        if (dto.DevelopmentExpenditure.HasValue) entry.DevelopmentExpenditure = dto.DevelopmentExpenditure.Value;
         if (dto.PLABudgetAllocated.HasValue) entry.PLABudgetAllocated = dto.PLABudgetAllocated.Value;
         if (dto.PLAReApp.HasValue) entry.PLAReApp = dto.PLAReApp.Value;
         if (dto.PLAExpenditure.HasValue) entry.PLAExpenditure = dto.PLAExpenditure.Value;
@@ -722,13 +728,15 @@ public class BudgetService : IBudgetService
 
         var aaaBudget = entries.Sum(e => e.TotalAAABudget);
         var aaaExpenditure = entries.Sum(e => e.AAAExpenditure);
+        var developmentBudget = entries.Sum(e => e.DevelopmentTotalBudget);
+        var developmentExpenditure = entries.Sum(e => e.DevelopmentExpenditure);
         var plaBudget = entries.Sum(e => e.PLATotalBudget);
         var plaExpenditure = entries.Sum(e => e.PLAExpenditure);
         var uhiBudget = entries.Sum(e => e.UHITotalBudget);
         var uhiExpenditure = entries.Sum(e => e.UHIExpenditure);
 
-        var totalBudget = aaaBudget + plaBudget + uhiBudget;
-        var totalExpenditure = aaaExpenditure + plaExpenditure + uhiExpenditure;
+        var totalBudget = aaaBudget + developmentBudget + plaBudget + uhiBudget;
+        var totalExpenditure = aaaExpenditure + developmentExpenditure + plaExpenditure + uhiExpenditure;
 
         var departmentSummaries = entries
             .GroupBy(e => string.IsNullOrWhiteSpace(e.CreatedBy?.Department) ? "Unassigned" : e.CreatedBy!.Department!)
@@ -760,6 +768,15 @@ public class BudgetService : IBudgetService
                 TotalExpenditure = aaaExpenditure,
                 Remaining = aaaBudget - aaaExpenditure,
                 UtilizationPercentage = aaaBudget > 0 ? Math.Round((aaaExpenditure / aaaBudget) * 100, 2) : 0
+            },
+
+            DevelopmentBudget = new BudgetCategorySummaryDto
+            {
+                Category = "Development (AAA)",
+                TotalBudget = developmentBudget,
+                TotalExpenditure = developmentExpenditure,
+                Remaining = developmentBudget - developmentExpenditure,
+                UtilizationPercentage = developmentBudget > 0 ? Math.Round((developmentExpenditure / developmentBudget) * 100, 2) : 0
             },
             
             PLABudget = new BudgetCategorySummaryDto
@@ -882,6 +899,9 @@ public class BudgetService : IBudgetService
             case "AAA":
                 entry.AAAExpenditure += dto.Amount;
                 break;
+            case "DEV":
+                entry.DevelopmentExpenditure += dto.Amount;
+                break;
             case "PLA":
                 entry.PLAExpenditure += dto.Amount;
                 break;
@@ -889,7 +909,7 @@ public class BudgetService : IBudgetService
                 entry.UHIExpenditure += dto.Amount;
                 break;
             default:
-                throw new InvalidOperationException("Invalid budget type. Must be AAA, PLA, or UHI.");
+                throw new InvalidOperationException("Invalid budget type. Must be AAA, DEV, PLA, or UHI.");
         }
 
         entry.CalculateTotals();
@@ -939,6 +959,11 @@ public class BudgetService : IBudgetService
         BudgetWithheldLapse = entry.BudgetWithheldLapse,
         AAAExpenditure = entry.AAAExpenditure,
         AAARemainingBudget = entry.AAARemainingBudget,
+        DevelopmentBudgetAllocated = entry.DevelopmentBudgetAllocated,
+        DevelopmentReApp = entry.DevelopmentReApp,
+        DevelopmentTotalBudget = entry.DevelopmentTotalBudget,
+        DevelopmentExpenditure = entry.DevelopmentExpenditure,
+        DevelopmentRemainingBudget = entry.DevelopmentRemainingBudget,
         PLABudgetAllocated = entry.PLABudgetAllocated,
         PLAReApp = entry.PLAReApp,
         PLATotalBudget = entry.PLATotalBudget,

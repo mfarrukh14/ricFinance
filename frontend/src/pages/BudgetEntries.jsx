@@ -232,10 +232,16 @@ export default function BudgetEntries() {
                       Head of Account
                     </th>
                     <th className="px-4 py-3 text-right text-xs font-semibold text-teal-600 uppercase tracking-wider whitespace-nowrap">
-                      AAA Budget
+                      AAA (Non-Dev) Budget
                     </th>
                     <th className="px-4 py-3 text-right text-xs font-semibold text-teal-600 uppercase tracking-wider whitespace-nowrap">
-                      AAA Exp.
+                      AAA (Non-Dev) Exp.
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-emerald-600 uppercase tracking-wider whitespace-nowrap">
+                      Dev Budget
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-emerald-600 uppercase tracking-wider whitespace-nowrap">
+                      Dev Exp.
                     </th>
                     <th className="px-4 py-3 text-right text-xs font-semibold text-blue-600 uppercase tracking-wider whitespace-nowrap">
                       PLA Budget
@@ -272,6 +278,12 @@ export default function BudgetEntries() {
                       <td className="px-4 py-4 text-slate-600 dark:text-slate-300 max-w-xs truncate">{entry.headOfAccount}</td>
                       <td className="px-4 py-4 text-right text-slate-800 dark:text-slate-100">{formatRupees(entry.totalAAABudget)}</td>
                       <td className="px-4 py-4 text-right text-red-600">{formatRupees(entry.aaaExpenditure)}</td>
+                      <td className="px-4 py-4 text-right text-slate-800 dark:text-slate-100">
+                        {formatRupees(entry.developmentTotalBudget)}
+                      </td>
+                      <td className="px-4 py-4 text-right text-red-600">
+                        {formatRupees(entry.developmentExpenditure)}
+                      </td>
                       <td className="px-4 py-4 text-right text-slate-800 dark:text-slate-100">{formatRupees(entry.plaTotalBudget)}</td>
                       <td className="px-4 py-4 text-right text-red-600">{formatRupees(entry.plaExpenditure)}</td>
                       <td className="px-4 py-4 text-right text-slate-800 dark:text-slate-100">{formatRupees(entry.uhiTotalBudget)}</td>
@@ -305,7 +317,7 @@ export default function BudgetEntries() {
                   ))}
                   {paginatedEntries.length === 0 && (
                     <tr>
-                      <td colSpan={12} className="px-4 py-12 text-center">
+                      <td colSpan={14} className="px-4 py-12 text-center">
                         <FileSpreadsheet className="w-12 h-12 text-slate-300 mx-auto mb-3" />
                         <p className="text-slate-500">No budget entries found</p>
                       </td>

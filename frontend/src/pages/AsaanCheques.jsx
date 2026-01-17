@@ -177,7 +177,7 @@ export default function AsaanCheques() {
                   Payee Name
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">
-                  Asaan Account
+                  Account
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">
                   Amount
@@ -194,7 +194,7 @@ export default function AsaanCheques() {
               {filteredCheques.length === 0 ? (
                 <tr>
                   <td colSpan="8" className="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
-                    No Asaan cheques found
+                    No cheques found
                   </td>
                 </tr>
               ) : (
